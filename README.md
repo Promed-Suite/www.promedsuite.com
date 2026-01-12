@@ -1,13 +1,13 @@
-# Turborepo starter
+# Promed Suite
 
-This Turborepo starter is maintained by the Turborepo core team.
+Promed Solutions is a leading digital platform that leverages automation, intelligent systems, and secure technologies to deliver streamlined, health coverage.
 
-## Using this example
+## Usage
 
-Run the following command:
-
-```sh
-npx create-turbo@latest
+```bash
+yarn install
+yarn run build
+yarn run start
 ```
 
 ## What's inside?
