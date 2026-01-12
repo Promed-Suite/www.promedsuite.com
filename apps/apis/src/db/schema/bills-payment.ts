@@ -1,0 +1,37 @@
+import {
+  date,
+  numeric,
+  pgTable,
+  serial,
+  timestamp,
+  varchar,
+} from "drizzle-orm/pg-core";
+
+export const billsPayment = pgTable("bills_payment", {
+  payment_no: serial("payment_no").primaryKey(),
+  cheque_no: varchar("cheque_no", { length: 20 }).notNull(),
+  cheque_date: date("cheque_date").notNull(),
+  cheque_amount: numeric("cheque_amount", {
+    precision: 10,
+    scale: 2,
+  }).notNull(),
+  provider: varchar("provider", { length: 7 }),
+  member_no: varchar("member_no", { length: 20 }),
+  corp_id: varchar("corp_id", { length: 10 }),
+  dispatched: numeric("dispatched", { precision: 1, scale: 0 }),
+  date_dispatched: date("date_dispatched"),
+  user_id: varchar("user_id", { length: 100 }),
+  date_entered: timestamp("date_entered").notNull().defaultNow(),
+  admin_fee: numeric("admin_fee", { precision: 10, scale: 2 }),
+  corp_paid_for: varchar("corp_paid_for", { length: 10 }),
+  acct_no: varchar("acct_no", { length: 10 }),
+  bank: numeric("bank", { precision: 2, scale: 0 }),
+  self_fund: numeric("self_fund", { precision: 1, scale: 0 }),
+  agent_id: varchar("agent_id", { length: 10 }),
+  user_dispatched: varchar("user_dispatched", { length: 100 }),
+  cheque_acc: varchar("cheque_acc", { length: 30 }),
+  voucher_no: varchar("voucher_no", { length: 30 }).notNull(),
+  cancelled: numeric("cancelled", { precision: 1, scale: 0 }),
+  proxy_payee: varchar("proxy_payee", { length: 70 }),
+  payee: varchar("payee", { length: 255 }),
+});

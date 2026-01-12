@@ -1,0 +1,26 @@
+import { date, numeric, pgTable, serial, varchar } from "drizzle-orm/pg-core";
+
+export const adminFeeInvoice = pgTable("admin_fee_invoice", {
+  id: serial("id").primaryKey(),
+  invoice_no: varchar("invoice_no", { length: 30 }).notNull(),
+  corp_id: varchar("corp_id", { length: 10 }).notNull(),
+  invoice_date: date("invoice_date").notNull(),
+  quantity: numeric("quantity", { precision: 10, scale: 0 }),
+  unit_amount: numeric("unit_amount", { precision: 10, scale: 2 }),
+  gross_amount: numeric("gross_amount", { precision: 10, scale: 2 }),
+  disc_percent: numeric("disc_percent", { precision: 10, scale: 2 }),
+  net_amount: numeric("net_amount", { precision: 10, scale: 2 }),
+  invoice_period: varchar("invoice_period", { length: 25 }),
+  next_invoice_month: varchar("next_invoice_month", { length: 10 }),
+  disc_amount: numeric("disc_amount", { precision: 10, scale: 2 }),
+  vat_rate: numeric("vat_rate", { precision: 7, scale: 2 }),
+  vat_amount: numeric("vat_amount", { precision: 10, scale: 2 }),
+  interval: numeric("interval", { precision: 1, scale: 0 }),
+  allocated_amt: numeric("allocated_amt", { precision: 10, scale: 2 }),
+  test1: numeric("test1", { precision: 1, scale: 0 }),
+  user_id: varchar("user_id", { length: 100 }),
+  date_entered: date("date_entered").defaultNow(),
+  anniv: numeric("anniv", { precision: 2, scale: 0 }),
+  uploaded: numeric("uploaded", { precision: 1, scale: 0 }),
+  excise_duty: numeric("excise_duty", { precision: 10, scale: 2 }),
+});

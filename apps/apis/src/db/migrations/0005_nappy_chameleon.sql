@@ -1,0 +1,1 @@
+ALTER TABLE "organization" ALTER COLUMN "organization_head" DROP NOT NULL;

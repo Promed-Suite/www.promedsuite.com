@@ -1,0 +1,66 @@
+{
+  "name": "electron",
+  "version": "1.0.0",
+  "main": "src/main.js",
+  "scripts": {
+    "dev:start": "concurrently -n \"WEB,ELECTRON\" -c \"green,blue\" \"cd ../web && yarn run dev\" \"wait-on http://localhost:3000 && cross-env NODE_ENV=development ELECTRON=1 electron .\"",
+    "build:web": "cd ../web && cross-env ELECTRON_BUILD=true NEXT_PUBLIC_ELECTRON=true yarn run build",
+    "build:electron": "electron-builder",
+    "build": "yarn run build:web && yarn run build:electron",
+    "package": "yarn run build && electron-builder --dir",
+    "dist": "yarn run build && electron-builder",
+    "dist:win": "yarn run build && electron-builder --win",
+    "dist:mac": "yarn run build && electron-builder --mac",
+    "dist:linux": "yarn run build && electron-builder --linux"
+  },
+  "build": {
+    "appId": "com.promedsuite.app",
+    "productName": "My Electron App",
+    "directories": {
+      "output": "../../dist"
+    },
+    "files": [
+      "src/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../web/.next/standalone",
+        "to": "standalone"
+      },
+      {
+        "from": "../web/.next/static",
+        "to": "static"
+      },
+      {
+        "from": "../web/public",
+        "to": "public"
+      }
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "**/standalone/**",
+      "**/static/**",
+      "**/public/**"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.productivity"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^7.10.2",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^39.2.7",
+    "electron-builder": "^26.0.12",
+    "wait-on": "^9.0.3"
+  }
+}

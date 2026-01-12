@@ -1,0 +1,32 @@
+import {
+  date,
+  numeric,
+  pgTable,
+  serial,
+  timestamp,
+  varchar,
+} from "drizzle-orm/pg-core";
+
+export const excise_duty = pgTable("excise_duty", {
+  idx: serial("idx").primaryKey(),
+  invoice_no: varchar("invoice_no", { length: 20 }).notNull(),
+  invoice_date: date("invoice_date"),
+  excise_acct: varchar("excise_acct", { length: 20 }),
+  excise_narr: varchar("excise_narr", { length: 50 }),
+  excise_amount: numeric("excise_amount", { precision: 10, scale: 2 }),
+  excise_dr_cr: varchar("excise_dr_cr", { length: 5 }),
+  currency: varchar("currency", { length: 5 }),
+  profit_crt: varchar("profit_crt", { length: 20 }),
+  cost_crt: varchar("cost_crt", { length: 20 }),
+  cust_acct: varchar("cust_acct", { length: 20 }),
+  cust_narr: varchar("cust_narr", { length: 50 }),
+  cust_amount: numeric("cust_amount", { precision: 10, scale: 2 }),
+  cust_dr_cr: varchar("cust_dr_cr", { length: 5 }),
+  acct: varchar("acct", { length: 20 }),
+  acct_narr: varchar("acct_narr", { length: 50 }),
+  acct_amount: numeric("acct_amount", { precision: 10, scale: 2 }),
+  acct_dr_cr: varchar("acct_dr_cr", { length: 5 }),
+  sent_to_sap: varchar("sent_to_sap", { length: 1 }),
+  sent_to_sap_date: timestamp("sent_to_sap_date"),
+  error_msg: varchar("error_msg", { length: 300 }),
+});

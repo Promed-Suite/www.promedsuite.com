@@ -1,0 +1,48 @@
+import {
+  date,
+  numeric,
+  pgTable,
+  serial,
+  timestamp,
+  varchar,
+} from "drizzle-orm/pg-core";
+
+export const investor_contribution = pgTable("investor_contribution", {
+  idx: serial("idx").primaryKey(),
+  policy_no: varchar("policy_no", { length: 20 }),
+  period: date("period"),
+  injection: numeric("injection", { precision: 1 }),
+  total_premium: numeric("total_premium", { precision: 10, scale: 2 }),
+  life_premium: numeric("life_premium", { precision: 10, scale: 2 }),
+  pa_premium: numeric("pa_premium", { precision: 10, scale: 2 }),
+  funeral_premium: numeric("funeral_premium", { precision: 10, scale: 2 }),
+  policy_fee: numeric("policy_fee", { precision: 10, scale: 2 }),
+  phcf: numeric("phcf", { precision: 10, scale: 2 }),
+  agent_commission: numeric("agent_commission", { precision: 10, scale: 2 }),
+  monthly_investment: numeric("monthly_investment", {
+    precision: 10,
+    scale: 2,
+  }),
+  annual_rate: numeric("annual_rate", { precision: 10, scale: 2 }),
+  monthly_rate: numeric("monthly_rate", { precision: 10, scale: 2 }),
+  monthly_interest: numeric("monthly_interest", { precision: 10, scale: 2 }),
+  total_investment: numeric("total_investment", { precision: 10, scale: 2 }),
+  date_entered: timestamp("date_entered").notNull().defaultNow(),
+  user_id: varchar("user_id", { length: 100 }),
+  opening_balance: numeric("opening_balance", { precision: 10, scale: 2 }),
+  allocation: numeric("allocation", { precision: 5, scale: 2 }),
+  investment_allocation: numeric("investment_allocation", {
+    precision: 10,
+    scale: 2,
+  }),
+  retained_allocation: numeric("retained_allocation", {
+    precision: 10,
+    scale: 2,
+  }),
+  next_period: varchar("next_period", { length: 6 }),
+  unit_price: numeric("unit_price", { precision: 10, scale: 2 }),
+  no_of_units: numeric("no_of_units", { precision: 10, scale: 2 }),
+  receipt_date: date("receipt_date"),
+  receipt_no: varchar("receipt_no", { length: 15 }),
+  frequency: varchar("frequency", { length: 1 }),
+});
