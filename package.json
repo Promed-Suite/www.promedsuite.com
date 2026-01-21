@@ -1,6 +1,10 @@
 {
   "name": "www.promedsuite.com",
   "private": true,
+  "packageManager": "pnpm@10.15.0",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
@@ -9,17 +13,12 @@
     "check-types": "turbo run check-types"
   },
   "devDependencies": {
+    "@dotenvx/dotenvx": "^1.51.4",
     "@types/minimatch": "^6.0.0",
     "prettier": "^3.7.4",
     "turbo": "^2.7.4",
-    "typescript": "5.9.2"
-  },
-  "engines": {
-    "node": ">=20"
-  },
-  "packageManager": "yarn@1.22.22",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ]
+    "typescript": "5.9.2",
+    "vite": "^7.3.1",
+    "vite-plugin-dts": "^4.5.4"
+  }
 }
