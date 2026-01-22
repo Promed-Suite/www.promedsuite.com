@@ -6,8 +6,15 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "turbo run build",
     "dev": "turbo run dev",
+    "start": "tsx scripts/watch.ts",
+    "dev:next": "cd apps/web && pnpm dev",
+    "dev:electron": "tsx scripts/watch.ts --watch",
+    "dev:pkg": "pnpm -F \"./packages/**\" dev",
+    "build:pkg": "pnpm -F \"./packages/**\" build",
+    "build": "turbo run build",
+    "compile": "pnpm build && turbo run compile",
+    "pack:dev": "pnpm run build && pnpm -F electron-main run pack:dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types"
@@ -15,6 +22,7 @@
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.51.4",
     "@types/minimatch": "^6.0.0",
+    "cross-env": "^10.1.0",
     "prettier": "^3.7.4",
     "turbo": "^2.7.4",
     "typescript": "5.9.2",

@@ -1,18 +1,18 @@
-import type { AppUpdateState } from "./types";
+import type { AppUpdateState } from './types'
 
 class WebUpdater {
-  private state: AppUpdateState = { status: "idle" };
+  private state: AppUpdateState = { status: 'idle' }
 
   async checkForUpdates(): Promise<AppUpdateState> {
     this.state = {
-      status: "not-available",
+      status: 'not-available',
       checkedAt: Date.now(),
-    };
-    return this.state;
+    }
+    return this.state
   }
 
   hasUpdate(): boolean {
-    return false;
+    return false
   }
 
   async upgradeNow(): Promise<void> {
@@ -20,4 +20,4 @@ class WebUpdater {
   }
 }
 
-export const webUpdater = new WebUpdater();
+export const webUpdater = new WebUpdater()

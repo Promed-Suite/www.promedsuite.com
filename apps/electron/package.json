@@ -1,15 +1,19 @@
 {
-  "name": "electron",
+  "name": "electron-main",
   "type": "module",
-  "version": "1.0.0",
-  "private": "false",
+  "version": "0.2.0",
+  "private": false,
   "description": "Electron main process",
   "author": {
-    "name": "bretmda",
-    "email": "brtdev@gmail.com",
-    "url": "https://github.com/br3tdev"
+    "name": "buqiyuan",
+    "email": "1743369777@qq.com",
+    "url": "https://github.com/buqiyuan"
   },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/buqiyuan/electron-vite-monorepo.git"
+  },
   "main": "dist-vite/index.mjs",
   "engines": {
     "node": ">=22.0.0"
@@ -24,25 +28,23 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "install:electron": "cross-env ELECTRON_GET_USE_PROXY=true node node_modules/electron/install.js",
     "gen:vendors": "cross-env ELECTRON_RUN_AS_NODE=1 electron ./scripts/update-electron-vendors.mjs",
-    "postinstall": ""
+    "postinstall": "pnpm install:electron && pnpm gen:vendors"
   },
-  "keywords": [],
-  "packageManager": "pnpm@10.15.0",
   "devDependencies": {
     "@electron/notarize": "^3.1.1",
-    "@types/minimatch": "^6.0.0",
-    "@types/node": "^25.0.9",
     "@workspace/electron-preload": "workspace:*",
     "@workspace/shared-types": "workspace:*",
+    "@types/node": "^22.14.1",
     "date-fns": "^4.1.0",
-    "electron": "^40.0.0",
-    "electron-builder": "^26.4.0",
+    "electron": "39.2.6",
+    "electron-builder": "26.3.4",
     "electron-log": "^5.4.3",
     "electron-store": "^11.0.2",
-    "electron-updater": "^6.7.3",
-    "terser-webpack-plugin": "^5.3.16",
+    "electron-updater": "6.6.2",
+    "terser-webpack-plugin": "^5.3.15",
+    "typescript": "catalog:",
     "vite": "catalog:",
-    "webpack": "^5.104.1",
+    "webpack": "^5.103.0",
     "webpack-cli": "^6.0.1"
   }
 }

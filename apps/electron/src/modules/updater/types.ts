@@ -1,1 +1,1 @@
-export type { AppUpdateState, UpdaterStatus } from "@workspace/shared-types";
+export type { AppUpdateState, UpdaterStatus } from '@repo/shared-types/updater'

@@ -25,12 +25,12 @@ export const appConfig = {
   // get webBaseURL() {
   //   return !isPackaged && import.meta.env.VITE_DEV_SERVER_URL !== undefined
   //     ? import.meta.env.VITE_DEV_SERVER_URL
-  //     : `file://${join(import.meta.dirname, "./web/index.html")}`;
+  //     : `file://${join(import.meta.dirname, './web/index.html')}`
   // },
   get webBaseURL() {
-    return !isPackaged
-      ? "http://localhost:3000"
-      : `file://${join(import.meta.dirname, "./web/index.html")}`;
+    return !isPackaged && import.meta.env.VITE_DEV_SERVER_URL !== undefined
+      ? import.meta.env.VITE_DEV_SERVER_URL
+      : `file://${join(import.meta.dirname, "./web/apps/web/server.js")}`;
   },
 } as const;
 

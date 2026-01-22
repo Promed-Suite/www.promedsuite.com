@@ -1,12 +1,12 @@
-import { setupApp } from "./app";
-import { setupIpc } from "./ipc";
-import { setupLog } from "./log";
+import { setupApp } from './app'
+import { setupIpc } from './ipc'
+import { setupLog } from './log'
 
 export async function setupModules() {
   // Initialize the logging pipeline
-  setupLog();
+  setupLog()
   // Register IPC endpoints
-  setupIpc();
+  setupIpc()
   // Boot the app shell
-  await setupApp();
+  await setupApp()
 }

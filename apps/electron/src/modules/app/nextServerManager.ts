@@ -1,7 +1,8 @@
-import { isPackaged } from "@/constants";
+import { app } from "electron";
 import { ChildProcess, spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import path from "node:path";
+import { appConfig, isPackaged } from "/@/constants";
 
 export class NextServerManager {
   private static instance: NextServerManager;
@@ -39,9 +40,13 @@ export class NextServerManager {
     console.log("Production mode: Starting Next.js standalone server...");
 
     // Paths for packaged app
-    const resourcesPath = process.resourcesPath;
-    const standalonePath = path.join(resourcesPath, "standalone");
-    const serverPath = path.join(standalonePath, "/apps/web/server.js");
+    const standalonePath = app.getAppPath();
+    const serverPath = path.join(
+      standalonePath,
+      "dist",
+      "web",
+      "/apps/web/server.js"
+    );
 
     console.log("Looking for server at:", serverPath);
 
@@ -153,7 +158,7 @@ export class NextServerManager {
 
   /** Get the server URL */
   getServerUrl(): string {
-    return `http://localhost:3000`;
+    return appConfig.webBaseURL;
   }
 
   /** Wait for server to be ready with retries */

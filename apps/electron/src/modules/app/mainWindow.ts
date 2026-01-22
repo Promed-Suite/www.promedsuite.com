@@ -1,5 +1,6 @@
-import { appConfig, isLinux, isPackaged } from "@/constants";
 import { BrowserWindow } from "electron";
+import { NextServerManager } from "./nextServerManager";
+import { appConfig, isLinux, isPackaged } from "/@/constants/";
 
 async function createWindow() {
   const browserWindow = new BrowserWindow({
@@ -11,6 +12,9 @@ async function createWindow() {
       sandbox: !isLinux,
       spellcheck: false,
       preload: appConfig.preloadFilePath,
+      // Important for Next.js routing
+      nodeIntegration: false,
+      contextIsolation: true,
     },
   });
 
@@ -25,7 +29,32 @@ async function createWindow() {
     }
   });
 
-  await browserWindow.loadURL(appConfig.webBaseURL);
+  // Start Next.js server and load URL
+  const serverManager = NextServerManager.getInstance();
+
+  try {
+    if (isPackaged) {
+      console.log("Starting Next.js standalone server...");
+      await serverManager.startServer();
+
+      // Wait for server to initialize
+      const isReady = await serverManager.waitForServerReady();
+      if (!isReady) {
+        throw new Error("Next.js server failed to start");
+      }
+    }
+
+    await browserWindow.loadURL(appConfig.webBaseURL);
+  } catch (error) {
+    console.error("Failed to load Next.js app:", error);
+
+    browserWindow.loadURL(`data:text/html;charset=utf-8,
+        <html><body>
+          <h1>Failed to load Next.js app</h1>
+          <p>${error}</p>
+          <p>Make sure Next.js dev server is running on port ${appConfig.webBaseURL}</p>
+        </body></html>`);
+  }
 
   return browserWindow;
 }
@@ -54,4 +83,14 @@ export async function restoreOrCreateWindow() {
 /** Get the main window instance */
 export function getMainWindow() {
   return mainWindow;
+}
+
+/** Clean up when app is closing */
+export function cleanupWindows() {
+  const serverManager = NextServerManager.getInstance();
+  serverManager.stopServer();
+
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.close();
+  }
 }

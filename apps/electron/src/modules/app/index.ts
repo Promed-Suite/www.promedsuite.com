@@ -1,10 +1,16 @@
-import { appProtocolName, isPackaged, mediaProtocolName } from "@/constants";
-import { createTray } from "@/modules/app/tray";
-import { ipcMain } from "@/modules/ipc";
 import type { Protocol } from "electron";
 import { app, net, session, shell } from "electron";
 import path from "node:path";
-import { getMainWindow, restoreOrCreateWindow } from "./mainWindow";
+import {
+  cleanupWindows,
+  getMainWindow,
+  restoreOrCreateWindow,
+} from "./mainWindow";
+import { NextServerManager } from "./nextServerManager";
+import { appProtocolName, mediaProtocolName } from "/@/constants";
+import { isPackaged } from "/@/constants/common";
+import { createTray } from "/@/modules/app/tray";
+import { ipcMain } from "/@/modules/ipc";
 
 // Inspect GPU info when debugging problems
 // app.getGPUFeatureStatus()
@@ -53,12 +59,22 @@ export async function setupApp() {
   /**
    * Shout down background process if all windows was closed
    */
-  // app.on('window-all-closed', () => {
-  //   if (process.platform !== 'darwin') {
-  //     console.log('All windows was closed. Quit app.')
-  //     app.quit()
-  //   }
-  // })
+  app.on("window-all-closed", () => {
+    const serverManager = NextServerManager.getInstance();
+    serverManager.stopServer();
+
+    if (process.platform !== "darwin") {
+      console.log("All windows was closed. Quit app.");
+      app.quit();
+    }
+  });
+
+  app.on("before-quit", () => cleanupWindows());
+
+  app.on("quit", () => {
+    const serverManager = NextServerManager.getInstance();
+    serverManager.stopServer();
+  });
 
   /**
    * @see https://www.electronjs.org/docs/v14-x-y/api/app#event-activate-macos Event: 'activate'

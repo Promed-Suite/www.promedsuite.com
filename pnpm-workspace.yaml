@@ -3,10 +3,13 @@ packages:
   - packages/*
 
 catalog:
+  typescript: 5.9.2
   vite: ^7.3.1
   vite-plugin-dts: ^4.5.4
 
 onlyBuiltDependencies:
   - core-js-pure
+  - electron
+  - electron-winstaller
   - esbuild
   - sharp

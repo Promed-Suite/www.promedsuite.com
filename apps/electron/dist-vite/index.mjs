@@ -1,20 +1,33 @@
-import { app as o, BrowserWindow as m, Tray as I, Menu as W, nativeTheme as $, shell as A, ipcMain as E, session as L, net as N } from "electron";
-import F, { join as c } from "node:path";
-import { parseArgs as V } from "node:util";
-import { setTimeout as j } from "node:timers/promises";
-import O from "electron-store";
-import M from "electron-updater";
-import { existsSync as q } from "node:fs";
-import { format as R } from "date-fns";
-import i from "electron-log/main.js";
-import { readdir as H, stat as z, rm as B } from "node:fs/promises";
-const v = o.isPackaged, u = (() => {
-  const e = V({
+import { app as o, dialog as F, BrowserWindow as k, Tray as L, Menu as W, ipcMain as M, nativeTheme as O, shell as T, session as V, net as q } from "electron";
+import j, { join as h } from "node:path";
+import { spawn as B } from "node:child_process";
+import { existsSync as I } from "node:fs";
+import { parseArgs as H } from "node:util";
+import { setTimeout as z } from "node:timers/promises";
+import G from "electron-store";
+import Q from "electron-updater";
+import { readdir as _, stat as J, rm as K } from "node:fs/promises";
+import { format as X } from "date-fns";
+import l from "electron-log/main.js";
+globalThis.__dirname ||= import.meta.dirname;
+o.isPackaged || (o.getVersion = () => "0.0.1");
+F.showErrorBox = function(t, e) {
+  console.error(`Error logged without system dialog: ${t}
+${e}`);
+};
+process.on("uncaughtException", (t) => {
+  console.error("Uncaught exception:", t);
+});
+process.on("unhandledRejection", (t) => {
+  console.error("Unhandled promise rejection:", t);
+});
+const y = o.isPackaged, S = (() => {
+  const e = H({
     options: {
       /** Log level */
       "app-log-level": {
         type: "string",
-        default: v ? "info" : "silly"
+        default: y ? "info" : "silly"
         // Default: info
         // default: 'info',  // Default: info
       },
@@ -29,82 +42,252 @@ const v = o.isPackaged, u = (() => {
   });
   return console.log("appCliStartArgs", e), e.values;
 })();
-u["app-log-level"];
-const G = u["app-env"] ? u["app-env"] === "dev" : !1;
-u["app-env"] && u["app-env"];
+S["app-log-level"];
+const Y = S["app-env"] ? S["app-env"] === "dev" : !0;
+S["app-env"] && S["app-env"];
 process.platform;
 process.platform;
-const _ = process.platform === "linux", y = o.getPath("sessionData"), h = {
+const Z = process.platform === "linux", U = o.getPath("sessionData"), g = {
   /** Application data root directory */
-  sessionDir: y,
+  sessionDir: U,
   /** System locale */
   lang: o.getLocale(),
   /** Temporary files directory */
-  tempDir: c(y, "temp"),
+  tempDir: h(U, "temp"),
   /** Application logs directory */
   logsDir: o.getPath("logs"),
   /** Configuration file */
-  configFile: c(y, "config.json"),
+  configFile: h(U, "config.json"),
   /** Preload script file path */
   get preloadFilePath() {
-    return v ? c(import.meta.dirname, "./preload/index.cjs") : c(import.meta.dirname, "../../preload/dist/index.cjs");
+    return y ? h(import.meta.dirname, "./preload/index.cjs") : h(import.meta.dirname, "../../preload/dist/index.cjs");
   },
   /** Web resource base URL */
+  // get webBaseURL() {
+  //   return !isPackaged && import.meta.env.VITE_DEV_SERVER_URL !== undefined
+  //     ? import.meta.env.VITE_DEV_SERVER_URL
+  //     : `file://${join(import.meta.dirname, './web/index.html')}`
+  // },
   get webBaseURL() {
-    return `file://${c(import.meta.dirname, "./web/index.html")}`;
+    return `file://${h(import.meta.dirname, "./web/apps/web/server.js")}`;
   }
 };
-console.debug("appConfig", h);
-const d = G ? "bqy-dev" : "bqy", b = "bqy-media";
-async function Q() {
-  const t = new m({
+console.debug("appConfig", g);
+const f = Y ? "bqy-dev" : "bqy", C = "bqy-media";
+class p {
+  static instance;
+  nextProcess = null;
+  serverReady = !1;
+  constructor() {
+  }
+  static getInstance() {
+    return p.instance || (p.instance = new p()), p.instance;
+  }
+  /**
+   * Start the Next.js server
+   */
+  async startServer() {
+    if (this.nextProcess && !this.nextProcess.killed) {
+      console.log("Next.js server is already running");
+      return;
+    }
+    if (this.serverReady = !1, !y) {
+      console.log(
+        "Development mode: Assuming Next.js dev server is already running"
+      ), this.serverReady = !0;
+      return;
+    }
+    console.log("Production mode: Starting Next.js standalone server...");
+    const e = o.getAppPath(), s = j.join(
+      e,
+      "dist",
+      "web",
+      "/apps/web/server.js"
+    );
+    if (console.log("Looking for server at:", s), !I(s))
+      throw console.error("Next.js standalone server not found at:", s), new Error("Next.js standalone server not found");
+    const r = {
+      ...process.env,
+      PORT: "3000",
+      HOSTNAME: "localhost",
+      ELECTRON: "true"
+    };
+    return new Promise((u, v) => {
+      try {
+        this.nextProcess = B("node", [s], {
+          env: r,
+          cwd: e,
+          stdio: ["pipe"],
+          detached: !1
+        });
+        let w = "", b = "";
+        this.nextProcess.stdout?.on("data", (i) => {
+          const c = i.toString();
+          w += c, console.log(`Next.js: ${c.trim()}`), (c.includes("started server") || c.includes("Ready in")) && (this.serverReady = !0, console.log("Next.js server is ready!"), u());
+        }), this.nextProcess.stderr?.on("data", (i) => {
+          const c = i.toString();
+          b += c, console.error(`Next.js error: ${c.trim()}`);
+        }), this.nextProcess.on("close", (i) => {
+          if (console.log(`Next.js process exited with code ${i}`), this.serverReady = !1, this.nextProcess = null, i !== 0 && i !== null) {
+            const c = new Error(
+              `Next.js server failed to start. Code: ${i}
+Stdout: ${w}
+Stderr: ${b}`
+            );
+            v(c);
+          }
+        }), this.nextProcess.on("error", (i) => {
+          console.error("Failed to start Next.js process:", i), this.serverReady = !1, this.nextProcess = null, v(i);
+        }), setTimeout(() => {
+          if (!this.serverReady) {
+            const i = new Error(
+              `Next.js server startup timeout. Server logs:
+Stdout: ${w}
+Stderr: ${b}`
+            );
+            this.stopServer(), v(i);
+          }
+        }, 3e4);
+      } catch (w) {
+        console.error("Error starting Next.js server:", w), v(w);
+      }
+    });
+  }
+  /** Stop the Next.js server */
+  stopServer() {
+    this.nextProcess && !this.nextProcess.killed && (console.log("Stopping Next.js server..."), this.nextProcess.kill("SIGTERM"), this.nextProcess = null, this.serverReady = !1);
+  }
+  /** Check if server is ready */
+  isServerReady() {
+    return this.serverReady;
+  }
+  /** Get the server URL */
+  getServerUrl() {
+    return g.webBaseURL;
+  }
+  /** Wait for server to be ready with retries */
+  async waitForServerReady(e = 30, s = 1e3) {
+    for (let r = 0; r < e; r++) {
+      if (this.serverReady)
+        return !0;
+      await new Promise((u) => setTimeout(u, s));
+    }
+    return !1;
+  }
+}
+async function ee() {
+  const t = new k({
     // Use 'ready-to-show' event to show window
     show: !1,
     webPreferences: {
       // https://www.electronjs.org/docs/latest/api/webview-tag#warning
       webviewTag: !1,
-      sandbox: !_,
+      sandbox: !Z,
       spellcheck: !1,
-      preload: h.preloadFilePath
+      preload: g.preloadFilePath,
+      // Important for Next.js routing
+      nodeIntegration: !1,
+      contextIsolation: !0
     }
   });
-  return t.on("ready-to-show", () => {
-    t?.show(), v || t?.webContents.openDevTools({ mode: "detach" });
-  }), await t.loadURL(h.webBaseURL), t;
+  t.on("ready-to-show", () => {
+    t?.show(), y || t?.webContents.openDevTools({ mode: "detach" });
+  });
+  const e = p.getInstance();
+  try {
+    if (y && (console.log("Starting Next.js standalone server..."), await e.startServer(), !await e.waitForServerReady()))
+      throw new Error("Next.js server failed to start");
+    await t.loadURL(g.webBaseURL);
+  } catch (s) {
+    console.error("Failed to load Next.js app:", s), t.loadURL(`data:text/html;charset=utf-8,
+        <html><body>
+          <h1>Failed to load Next.js app</h1>
+          <p>${s}</p>
+          <p>Make sure Next.js dev server is running on port ${g.webBaseURL}</p>
+        </body></html>`);
+  }
+  return t;
 }
-let r;
-async function S() {
-  (!r || r.isDestroyed()) && (r = await Q()), r.isMinimized() && r.restore(), r.setSkipTaskbar(!1), r.setAlwaysOnTop(!0), r.show(), r.focus(), r.setAlwaysOnTop(!1);
+let a;
+async function D() {
+  (!a || a.isDestroyed()) && (a = await ee()), a.isMinimized() && a.restore(), a.setSkipTaskbar(!1), a.setAlwaysOnTop(!0), a.show(), a.focus(), a.setAlwaysOnTop(!1);
 }
-function p() {
-  return r;
+function m() {
+  return a;
 }
-let l;
-async function J() {
-  if (await j(), l)
-    return l.setContextMenu(C()), l;
-  const t = F.join(import.meta.dirname, "..", "resources/tray.png");
-  return l = new I(t), l.setToolTip(o.getName()), l.setContextMenu(C()), l.on("click", () => {
-    p()?.show(), p()?.setSkipTaskbar(!1);
-  }), l;
+function te() {
+  p.getInstance().stopServer(), a && !a.isDestroyed() && a.close();
 }
-function C() {
+let d;
+async function se() {
+  if (await z(), d)
+    return d.setContextMenu(A()), d;
+  const t = j.join(import.meta.dirname, "..", "resources/tray.png");
+  return d = new L(t), d.setToolTip(o.getName()), d.setContextMenu(A()), d.on("click", () => {
+    m()?.show(), m()?.setSkipTaskbar(!1);
+  }), d;
+}
+function A() {
   return W.buildFromTemplate([
     {
       label: "show",
       click: () => {
-        p()?.show();
+        m()?.show();
       }
     },
     {
       label: "exit",
       click: () => {
-        l.destroy(), p()?.destroy();
+        d.destroy(), m()?.destroy();
       }
     }
   ]);
 }
-const K = {
+class oe {
+  channel;
+  listeners = {};
+  constructor(e = "IPC-bridge") {
+    this.channel = e, this.bindMessage();
+  }
+  on(e, s) {
+    if (this.listeners[e])
+      throw new Error(`Handler for message ${String(e)} already exists`);
+    this.listeners[e] = s;
+  }
+  off(e) {
+    this.listeners[e] && delete this.listeners[e];
+  }
+  async send(e, ...s) {
+    k.getAllWindows().forEach((u) => {
+      u.webContents.send(this.channel, {
+        name: e,
+        payload: s
+      });
+    });
+  }
+  bindMessage() {
+    M.handle(this.channel, this.handleReceivingMessage.bind(this));
+  }
+  async handleReceivingMessage(e, s) {
+    try {
+      if (this.listeners[s.name])
+        return {
+          type: "success",
+          result: await this.listeners[s.name](
+            e,
+            ...s.payload
+          )
+        };
+      throw new Error(`Unknown IPC message ${String(s.name)}`);
+    } catch (r) {
+      return {
+        type: "error",
+        error: r.toString()
+      };
+    }
+  }
+}
+const re = {
   theme: {
     type: "string",
     enum: ["system", "light", "dark"],
@@ -128,55 +311,40 @@ const K = {
     type: "string",
     default: ""
   }
-}, P = new O({
-  schema: K,
+}, $ = new G({
+  schema: re,
   clearInvalidConfig: !0
-}), { autoUpdater: a } = M, D = c(import.meta.dirname, "../dev-app-update.yml"), X = [
-  "checking",
-  "available",
-  "downloading",
-  "downloaded",
-  "not-available",
-  "error"
-];
-class Y {
+}), { autoUpdater: n } = Q, R = h(import.meta.dirname, "../dev-app-update.yml"), ne = ["checking", "available", "downloading", "downloaded", "not-available", "error"];
+class ae {
   state = { status: "idle" };
   updateDownloaded = !1;
   checkingPromise = null;
   devConfigEnabled;
   listeners = /* @__PURE__ */ new Set();
   constructor() {
-    this.devConfigEnabled = !o.isPackaged && q(D), this.devConfigEnabled && (a.forceDevUpdateConfig = !0, a.updateConfigPath = D), a.autoDownload = !0, a.autoInstallOnAppQuit = !1, a.fullChangelog = !0, a.logger = console, a.on("checking-for-update", () => {
+    this.devConfigEnabled = !o.isPackaged && I(R), this.devConfigEnabled && (n.forceDevUpdateConfig = !0, n.updateConfigPath = R), n.autoDownload = !0, n.autoInstallOnAppQuit = !1, n.fullChangelog = !0, n.logger = console, n.on("checking-for-update", () => {
       this.setState({ status: "checking", error: void 0 });
-    }), a.on("update-available", (e) => {
+    }), n.on("update-available", (e) => {
       this.updateDownloaded = !1, this.setState({ status: "available", info: e, progress: void 0 });
-    }), a.on("update-not-available", (e) => {
+    }), n.on("update-not-available", (e) => {
       this.updateDownloaded = !1, this.setState({ status: "not-available", info: e, progress: void 0 });
-    }), a.on("error", (e) => {
+    }), n.on("error", (e) => {
       const s = e instanceof Error ? e.message : String(e);
       this.updateDownloaded = !1, this.setState({ status: "error", error: s, progress: void 0 });
-    }), a.on("download-progress", (e) => {
+    }), n.on("download-progress", (e) => {
       this.setState({ status: "downloading", progress: e });
-    }), a.on("update-downloaded", (e) => {
+    }), n.on("update-downloaded", (e) => {
       this.updateDownloaded = !0, this.setState({ status: "downloaded", info: e, progress: void 0 });
     });
   }
   /** Manually trigger an update check */
   async checkForUpdates() {
-    return this.canCheckUpdates() ? this.checkingPromise ? this.checkingPromise : (this.checkingPromise = a.checkForUpdates().then((e) => (e?.updateInfo && this.isNewerVersion(e.updateInfo.version) ? this.setState({ status: "available", info: e.updateInfo }) : this.setState({
-      status: "not-available",
-      info: e?.updateInfo,
-      progress: void 0
-    }), this.state)).catch((e) => {
+    return this.canCheckUpdates() ? this.checkingPromise ? this.checkingPromise : (this.checkingPromise = n.checkForUpdates().then((e) => (e?.updateInfo && this.isNewerVersion(e.updateInfo.version) ? this.setState({ status: "available", info: e.updateInfo }) : this.setState({ status: "not-available", info: e?.updateInfo, progress: void 0 }), this.state)).catch((e) => {
       const s = e instanceof Error ? e.message : String(e);
       return this.setState({ status: "error", error: s, progress: void 0 }), this.state;
     }).finally(() => {
       this.checkingPromise = null;
-    }), this.checkingPromise) : (this.setState({
-      status: "error",
-      error: "No update feed configured for the current runtime",
-      progress: void 0
-    }), this.state);
+    }), this.checkingPromise) : (this.setState({ status: "error", error: "No update feed configured for the current runtime", progress: void 0 }), this.state);
   }
   /** Get the latest known update state */
   getState() {
@@ -196,7 +364,7 @@ class Y {
   async upgradeNow() {
     if (!this.hasUpdate())
       throw new Error("No update is currently available");
-    this.updateDownloaded || await a.downloadUpdate(), a.quitAndInstall(!1, !0);
+    this.updateDownloaded || await n.downloadUpdate(), n.quitAndInstall(!1, !0);
   }
   canCheckUpdates() {
     return o.isPackaged || this.devConfigEnabled;
@@ -210,12 +378,10 @@ class Y {
     }
   }
   normalizeVersion(e) {
-    return Number(
-      e.split(".").map((s) => s.padStart(2, "0")).join("")
-    );
+    return Number(e.split(".").map((s) => s.padStart(2, "0")).join(""));
   }
   setState(e) {
-    const s = e.status && X.includes(e.status);
+    const s = e.status && ne.includes(e.status);
     this.state = {
       ...this.state,
       ...e,
@@ -227,8 +393,8 @@ class Y {
       e(this.state);
   }
 }
-const f = new Y();
-class Z {
+const P = new ae();
+class ie {
   state = { status: "idle" };
   async checkForUpdates() {
     return this.state = {
@@ -242,148 +408,108 @@ class Z {
   async upgradeNow() {
   }
 }
-const U = new Z();
-function ee(t) {
-  const e = f.onStateChange((s) => {
+const E = new ie();
+function le(t) {
+  const e = P.onStateChange((s) => {
     t.send("app:updateState", s);
   });
   o.once("before-quit", () => {
     e();
-  }), t.on("app:getAppVersion", (s) => o.getVersion()), t.on("app:setSystemTheme", (s, n) => {
-    $.themeSource = n;
-  }), t.on("app:saveSoftConfig", (s, n) => {
-    Object.assign(P.store, n);
-  }), t.on("app:getSoftConfig", (s) => ({ ...P })), t.on("app:checkForUpdates", (s) => f.checkForUpdates()), t.on("app:getUpdateState", () => f.getState()), t.on("app:checkWebForUpdates", (s) => U.checkForUpdates()), t.on("app:hasUpdate", (s) => f.hasUpdate()), t.on("app:quitAndInstall", async (s, n) => {
-    n.type === "app" ? f.upgradeNow() : n.type === "web" && await U.upgradeNow();
+  }), t.on("app:getAppVersion", (s) => o.getVersion()), t.on("app:setSystemTheme", (s, r) => {
+    O.themeSource = r;
+  }), t.on("app:saveSoftConfig", (s, r) => {
+    Object.assign($.store, r);
+  }), t.on("app:getSoftConfig", (s) => ({ ...$ })), t.on("app:checkForUpdates", (s) => P.checkForUpdates()), t.on("app:getUpdateState", () => P.getState()), t.on("app:checkWebForUpdates", (s) => E.checkForUpdates()), t.on("app:hasUpdate", (s) => P.hasUpdate()), t.on("app:quitAndInstall", async (s, r) => {
+    r.type === "app" ? P.upgradeNow() : r.type === "web" && await E.upgradeNow();
   }), t.on("app:showLogDir", (s) => {
-    A.openPath(h.logsDir);
-  }), t.on("app:showHideTrafficLight", (s, n) => {
-    p()?.setWindowButtonVisibility?.(n);
-  }), t.on("app:isMainWindow", (s) => p()?.id === m.fromWebContents(s.sender)?.id), t.on("app:showCurrentWebviewWindow", (s) => {
-    m.fromWebContents(s.sender)?.show();
+    T.openPath(g.logsDir);
+  }), t.on("app:showHideTrafficLight", (s, r) => {
+    m()?.setWindowButtonVisibility?.(r);
+  }), t.on("app:isMainWindow", (s) => m()?.id === k.fromWebContents(s.sender)?.id), t.on("app:showCurrentWebviewWindow", (s) => {
+    k.fromWebContents(s.sender)?.show();
   }), t.on("app:getGPUFeatureStatus", (s) => o.getGPUFeatureStatus());
 }
-function te(t) {
-  ee(t);
+function ce(t) {
+  le(t);
 }
-class se {
-  channel;
-  listeners = {};
-  constructor(e = "IPC-bridge") {
-    this.channel = e, this.bindMessage();
-  }
-  on(e, s) {
-    if (this.listeners[e])
-      throw new Error(`Handler for message ${String(e)} already exists`);
-    this.listeners[e] = s;
-  }
-  off(e) {
-    this.listeners[e] && delete this.listeners[e];
-  }
-  async send(e, ...s) {
-    m.getAllWindows().forEach((g) => {
-      g.webContents.send(this.channel, {
-        name: e,
-        payload: s
-      });
-    });
-  }
-  bindMessage() {
-    E.handle(this.channel, this.handleReceivingMessage.bind(this));
-  }
-  async handleReceivingMessage(e, s) {
-    try {
-      if (this.listeners[s.name])
-        return {
-          type: "success",
-          result: await this.listeners[s.name](
-            e,
-            ...s.payload
-          )
-        };
-      throw new Error(`Unknown IPC message ${String(s.name)}`);
-    } catch (n) {
-      return {
-        type: "error",
-        error: n.toString()
-      };
-    }
-  }
-}
-const w = new se();
-function oe() {
-  te(w);
+const x = new oe();
+function de() {
+  ce(x);
 }
 o.commandLine.appendSwitch("experimental-network-inspection");
-!v && o.commandLine.appendSwitch("ignore-connections-limit", "localhost");
+!y && o.commandLine.appendSwitch("ignore-connections-limit", "localhost");
 o.on("open-url", async (t, e) => {
-  t.preventDefault(), await k(e, "open-url");
+  t.preventDefault(), await N(e, "open-url");
 });
-async function ne() {
-  o.removeAsDefaultProtocolClient(d), process.defaultApp ? process.argv.length >= 2 && o.setAsDefaultProtocolClient(d, process.execPath, [
-    F.resolve(process.argv[1])
-  ]) : o.setAsDefaultProtocolClient(d), o.on("second-instance", async (t, e) => {
-    console.log("commandLine", e), await S(), await k(e.at(-1) || "", "second-instance");
+async function pe() {
+  o.removeAsDefaultProtocolClient(f), process.defaultApp ? process.argv.length >= 2 && o.setAsDefaultProtocolClient(f, process.execPath, [
+    j.resolve(process.argv[1])
+  ]) : o.setAsDefaultProtocolClient(f), o.on("second-instance", async (t, e) => {
+    console.log("commandLine", e), await D(), await N(e.at(-1) || "", "second-instance");
   }), o.on("web-contents-created", (t, e) => {
-    e.setWindowOpenHandler(({ url: s }) => (A.openExternal(s), { action: "deny" }));
-  }), o.on("activate", () => S());
+    e.setWindowOpenHandler(({ url: s }) => (T.openExternal(s), { action: "deny" }));
+  }), o.on("window-all-closed", () => {
+    p.getInstance().stopServer(), process.platform !== "darwin" && (console.log("All windows was closed. Quit app."), o.quit());
+  }), o.on("before-quit", () => te()), o.on("quit", () => {
+    p.getInstance().stopServer();
+  }), o.on("activate", () => D());
   try {
-    await o.whenReady(), ae(), await S(), J(), await re(), console.log("setupApp done");
+    await o.whenReady(), ue(), await D(), se(), await he(), console.log("setupApp done");
   } catch (t) {
     console.error("Failed create window:", t);
   }
 }
-function ae(t = L.defaultSession.protocol) {
-  t.isProtocolHandled(b) || t.handle(b, (e) => {
-    const s = e.url.slice(`${b}:`.length);
-    return console.debug("protocol handle", s), N.fetch(s);
+function ue(t = V.defaultSession.protocol) {
+  t.isProtocolHandled(C) || t.handle(C, (e) => {
+    const s = e.url.slice(`${C}:`.length);
+    return console.debug("protocol handle", s), q.fetch(s);
   });
 }
-async function re() {
+async function he() {
   try {
     const t = process.argv.find(
-      (e) => e.startsWith(`${d}://`)
+      (e) => e.startsWith(`${f}://`)
     );
-    t && await k(t, "cold-start");
+    t && await N(t, "cold-start");
   } catch (t) {
     console.error("Failed to handle protocol on cold start:", t);
   }
 }
-async function k(t, e) {
+async function N(t, e) {
   try {
-    if (!t || !t.startsWith(`${d}://`)) return;
+    if (!t || !t.startsWith(`${f}://`)) return;
     console.log(`deep-link [${e}]:`, t);
     const s = t.split("?")[1];
-    t.includes(`${d}://oauth2callback`) && (w.send("oauth2:google-callback", `?${s}`), console.log("oauth2callback:", e, t)), t.includes(`${d}://inviteUser2project`) && (w.send("invite:to-project", `?${s}`), console.log("inviteUser2project:", e, t)), t.includes(`${d}://open-page`) && (w.send("open:page", `?${s}`), console.log("open-page:", e, t)), p()?.show?.();
+    t.includes(`${f}://oauth2callback`) && (x.send("oauth2:google-callback", `?${s}`), console.log("oauth2callback:", e, t)), t.includes(`${f}://inviteUser2project`) && (x.send("invite:to-project", `?${s}`), console.log("inviteUser2project:", e, t)), t.includes(`${f}://open-page`) && (x.send("open:page", `?${s}`), console.log("open-page:", e, t)), m()?.show?.();
   } catch (s) {
     console.error("Failed to dispatch deep link:", e, s);
   }
 }
-function ie() {
-  i.transports.console.format = "[{y}-{m}-{d} {h}:{i}:{s}] [{level}] {text}", i.transports.file.format = `[{y}-{m}-{d} {h}:{i}:{s}] [{level}][${o.getVersion()}] {text}`, i.transports.console.useStyles = !0, i.transports.file.level = u["app-log-level"], i.transports.file.sync = !1, i.transports.file.resolvePathFn = () => {
-    const t = R(Date.now(), "yyyy-MM-dd");
-    return c(h.logsDir, `${t}.log`);
-  }, Object.assign(console, i.functions), i.errorHandler.startCatching(), le();
+function fe() {
+  l.transports.console.format = "[{y}-{m}-{d} {h}:{i}:{s}] [{level}] {text}", l.transports.file.format = `[{y}-{m}-{d} {h}:{i}:{s}] [{level}][${o.getVersion()}] {text}`, l.transports.console.useStyles = !0, l.transports.file.level = S["app-log-level"], l.transports.file.sync = !1, l.transports.file.resolvePathFn = () => {
+    const t = X(Date.now(), "yyyy-MM-dd");
+    return h(g.logsDir, `${t}.log`);
+  }, Object.assign(console, l.functions), l.errorHandler.startCatching(), ge();
 }
-async function le() {
-  const t = h.logsDir;
+async function ge() {
+  const t = g.logsDir;
   try {
-    const e = await H(t), s = Date.now();
-    e.forEach(async (n) => {
-      const g = c(t, n), T = await z(g);
-      s - T.mtimeMs > 10080 * 60 * 1e3 && B(g, { recursive: !0, force: !0 }).then(() => {
-        i.info(`Deleted expired log file: ${n}`);
-      }).catch((x) => {
-        i.error(`Failed to delete file: ${n}`, x);
+    const e = await _(t), s = Date.now();
+    e.forEach(async (r) => {
+      const u = h(t, r), v = await J(u);
+      s - v.mtimeMs > 10080 * 60 * 1e3 && K(u, { recursive: !0, force: !0 }).then(() => {
+        l.info(`Deleted expired log file: ${r}`);
+      }).catch((b) => {
+        l.error(`Failed to delete file: ${r}`, b);
       });
     });
   } catch (e) {
-    i.error("Failed to read log directory:", e);
+    l.error("Failed to read log directory:", e);
   }
 }
-async function ce() {
-  ie(), oe(), await ne();
+async function we() {
+  fe(), de(), await pe();
 }
-const de = o.requestSingleInstanceLock();
-de || (o.quit(), process.exit(0));
-ce();
+const me = o.requestSingleInstanceLock();
+me || (o.quit(), process.exit(0));
+we();

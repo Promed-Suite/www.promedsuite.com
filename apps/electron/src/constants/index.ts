@@ -1,3 +1,3 @@
-export * from "./appConfig";
-export * from "./common";
-export * from "./customProtocol";
+export * from './appConfig'
+export * from './common'
+export * from './customProtocol'
