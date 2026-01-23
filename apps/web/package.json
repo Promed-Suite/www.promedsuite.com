@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "postbuild": "cp -r public .next/standalone/apps/web/ && cp -r .next/static .next/standalone/apps/web/.next/",
+    "postbuild": "",
     "start": "next start",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
