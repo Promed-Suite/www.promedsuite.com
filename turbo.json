@@ -16,6 +16,19 @@
         "dist/**"
       ]
     },
+    "@workspace/api-client#build": {
+      "dependsOn": [
+        "apis#build"
+      ],
+      "outputs": [
+        "dist/**"
+      ]
+    },
+    "apis#build": {
+      "outputs": [
+        "dist/**"
+      ]
+    },
     "compile": {
       "dependsOn": [
         "^build",
@@ -38,25 +51,6 @@
     "dev": {
       "cache": false,
       "persistent": true
-    }
-  },
-  "pipeline": {
-    "@workspace/api-client#build": {
-      "dependsOn": [
-        "apis#build"
-      ],
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        ".env*"
-      ],
-      "outputs": [
-        "dist/**"
-      ]
-    },
-    "apis#build": {
-      "outputs": [
-        "dist/**"
-      ]
     }
   }
 }
