@@ -30,7 +30,7 @@ export const appConfig = {
   get webBaseURL() {
     return !isPackaged && import.meta.env.VITE_DEV_SERVER_URL !== undefined
       ? import.meta.env.VITE_DEV_SERVER_URL
-      : `file://${join(import.meta.dirname, "./web/apps/web/server.js")}`;
+      : `http://localhost:3000`;
   },
 } as const;
 

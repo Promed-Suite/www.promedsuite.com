@@ -1,6 +1,9 @@
-import { BrowserWindow } from "electron";
-import { NextServerManager } from "./nextServerManager";
+import { app, BrowserWindow, protocol } from "electron";
+import { createHandler } from "next-electron-rsc";
+import path from "node:path";
 import { appConfig, isLinux, isPackaged } from "/@/constants/";
+
+let stopIntercept;
 
 async function createWindow() {
   const browserWindow = new BrowserWindow({
@@ -12,9 +15,6 @@ async function createWindow() {
       sandbox: !isLinux,
       spellcheck: false,
       preload: appConfig.preloadFilePath,
-      // Important for Next.js routing
-      nodeIntegration: false,
-      contextIsolation: true,
     },
   });
 
@@ -29,32 +29,32 @@ async function createWindow() {
     }
   });
 
-  // Start Next.js server and load URL
-  const serverManager = NextServerManager.getInstance();
+  const appPath = app.getAppPath();
+  const dev = process.env.NODE_ENV === "development";
+  const dir = path.join(appPath, "dist", "web/apps/web/");
 
-  try {
-    if (isPackaged) {
-      console.log("Starting Next.js standalone server...");
-      await serverManager.startServer();
+  console.log("APP", appPath);
 
-      // Wait for server to initialize
-      const isReady = await serverManager.waitForServerReady();
-      if (!isReady) {
-        throw new Error("Next.js server failed to start");
-      }
-    }
+  const { createInterceptor, localhostUrl } = createHandler({
+    dev,
+    dir,
+    protocol,
+    debug: true,
+    turbo: true,
+  });
 
-    await browserWindow.loadURL(appConfig.webBaseURL);
-  } catch (error) {
-    console.error("Failed to load Next.js app:", error);
+  stopIntercept = await createInterceptor({
+    session: browserWindow.webContents.session,
+  });
 
-    browserWindow.loadURL(`data:text/html;charset=utf-8,
-        <html><body>
-          <h1>Failed to load Next.js app</h1>
-          <p>${error}</p>
-          <p>Make sure Next.js dev server is running on port ${appConfig.webBaseURL}</p>
-        </body></html>`);
-  }
+  browserWindow.on("close", () => {
+    stopIntercept?.();
+  });
+
+  // await browserWindow.loadURL(`https://mxlinux.org/mx-linux-blog/`);
+  await browserWindow.loadURL(appConfig.webBaseURL);
+
+  console.log("[APP] Loaded", localhostUrl);
 
   return browserWindow;
 }
@@ -85,12 +85,4 @@ export function getMainWindow() {
   return mainWindow;
 }
 
-/** Clean up when app is closing */
-export function cleanupWindows() {
-  const serverManager = NextServerManager.getInstance();
-  serverManager.stopServer();
-
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.close();
-  }
-}
+export { stopIntercept };
