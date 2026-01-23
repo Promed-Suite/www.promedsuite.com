@@ -12,9 +12,7 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit"
   },
-  "peerDependencies": {
-    "apis": "workspace:*"
-  },
+  "peerDependencies": {},
   "dependencies": {
     "@better-fetch/fetch": "1.1.18",
     "@hookform/resolvers": "^5.2.2",
@@ -33,6 +31,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@workspace/api-client": "workspace:*",
     "@workspace/ui": "workspace:*",
+    "apis": "workspace:*",
     "better-auth": "^1.4.5",
     "class-variance-authority": "^0.7.1",
     "date-fns": "^4.1.0",
