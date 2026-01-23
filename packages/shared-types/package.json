@@ -1,0 +1,19 @@
+{
+  "name": "@workspace/shared-types",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./updater": {
+      "types": "./src/updater.ts",
+      "default": "./src/updater.ts"
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.9",
+    "electron-updater": "^6.7.3"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "name": "@workspace/electron-preload",
+  "type": "commonjs",
+  "version": "1.0.0",
+  "private": true,
+  "description": "",
+  "main": "index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "default": "./dist/index.cjs"
+    },
+    "./main": {
+      "types": "./dist/ipcMain.d.ts",
+      "development": "./src/ipcMain.ts",
+      "default": "./dist/ipcMain.cjs"
+    },
+    "./dist/*": "./dist/*"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "postinstall": ""
+  },
+  "peerDependencies": {
+    "electron": "^40.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.9",
+    "@workspace/shared-types": "workspace:*",
+    "vite-plugin-dts": "catalog:"
+  },
+  "packageManager": "pnpm@10.15.0",
+  "engines": {
+    "node": ">=v16.14.2",
+    "npm": ">=8.7.0"
+  }
+}

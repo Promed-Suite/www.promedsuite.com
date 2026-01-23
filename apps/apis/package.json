@@ -27,7 +27,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "auth:generate": "yarn dlx @better-auth/cli@latest generate --config ./src/lib/auth.ts --output ./src/db/new-auth-schema.ts --yes",
+    "auth:generate": "pnpm dlx @better-auth/cli@latest generate --config ./src/lib/auth.ts --output ./src/db/new-auth-schema.ts --yes",
     "test": "cross-env NODE_ENV=test vitest",
     "build": "tsc && tsc-alias"
   },
@@ -53,7 +53,7 @@
   "devDependencies": {
     "@antfu/eslint-config": "^5.1.0",
     "@types/node": "^24.2.0",
-    "@workspace/eslint-config": "*",
+    "@workspace/eslint-config": "workspace:*",
     "cross-env": "^10.0.0",
     "drizzle-kit": "^0.31.4",
     "eslint": "^9.32.0",

@@ -16,15 +16,16 @@
     "dev": "tsc --watch",
     "typecheck": "tsc --noEmit"
   },
-  "peerDependencies": {},
+  "peerDependencies": {
+    "apis": "workspace:*"
+  },
   "dependencies": {
     "hono": "^4.9.6"
   },
   "devDependencies": {
     "@types/minimatch": "^6.0.0",
     "@types/node": "^20.19.25",
-    "@workspace/typescript-config": "*",
-    "apis": "*",
+    "@workspace/typescript-config": "workspace:*",
     "typescript": "^5.0.0"
   }
 }
