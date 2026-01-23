@@ -11,7 +11,7 @@ jiti("./env");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: "standalone",
+  output: process.env.ELECTRON_BUILD ? "standalone" : undefined,
   // this includes files from the monorepo base two directories up
   outputFileTracingRoot: path.join(import.meta.dirname, "../../"),
   transpilePackages: [

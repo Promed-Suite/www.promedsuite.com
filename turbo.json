@@ -39,5 +39,24 @@
       "cache": false,
       "persistent": true
     }
+  },
+  "pipeline": {
+    "@workspace/api-client#build": {
+      "dependsOn": [
+        "apis#build"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*"
+      ],
+      "outputs": [
+        "dist/**"
+      ]
+    },
+    "apis#build": {
+      "outputs": [
+        "dist/**"
+      ]
+    }
   }
 }
