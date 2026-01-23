@@ -16,7 +16,6 @@
     "dev": "tsc --watch",
     "typecheck": "tsc --noEmit"
   },
-  "peerDependencies": {},
   "dependencies": {
     "hono": "^4.9.6"
   },
