@@ -342,9 +342,6 @@ importers:
 
   packages/api-client:
     dependencies:
-      apis:
-        specifier: workspace:*
-        version: link:../../apps/apis
       hono:
         specifier: ^4.9.6
         version: 4.11.4
@@ -358,6 +355,9 @@ importers:
       '@workspace/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
+      apis:
+        specifier: workspace:*
+        version: link:../../apps/apis
       typescript:
         specifier: ^5.0.0
         version: 5.9.2
