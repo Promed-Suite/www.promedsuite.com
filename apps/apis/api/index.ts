@@ -1,9 +1,5 @@
-import app from "../src/app";
+import { handle } from "@hono/node-server/vercel";
 
-const handler = {
-  fetch: app.fetch,
-};
+import app from "../dist/app.js";
 
-export default handler;
-
-export { app };
+export default handle(app);

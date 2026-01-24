@@ -16,6 +16,7 @@ expand(
 const EnvSchema = z
   .object({
     NODE_ENV: z.string().default("development"),
+    NODEJS_HELPERS: z.number().default(0),
     PORT: z.coerce.number().default(9999),
     LOG_LEVEL: z.enum([
       "fatal",
