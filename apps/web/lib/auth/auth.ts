@@ -15,10 +15,9 @@ export async function getSession() {
   const session = await betterFetch<Session>("/api/auth/get-session", {
     baseURL,
     headers: {
-      cookie:
-        `${cookieStore.get("better-auth.session_token")?.name
-        }=${
-          cookieStore.get("better-auth.session_token")?.value}`,
+      cookie: `${cookieStore.get("better-auth.session_token")?.name}=${
+        cookieStore.get("better-auth.session_token")?.value
+      }`,
     },
   });
 
@@ -38,11 +37,10 @@ export async function hasAdminPermission() {
     baseURL,
     headers: {
       "Content-Type": "application/json",
-      "Origin": "http://localhost:3000",
-      "cookie":
-        `${cookieStore.get("better-auth.session_token")?.name
-        }=${
-          cookieStore.get("better-auth.session_token")?.value}`,
+      Origin: env.NEXT_PUBLIC_URL,
+      cookie: `${cookieStore.get("better-auth.session_token")?.name}=${
+        cookieStore.get("better-auth.session_token")?.value
+      }`,
     },
     method: "POST",
     body: JSON.stringify({
@@ -64,12 +62,11 @@ export async function getOrganizations() {
     {
       baseURL,
       headers: {
-        cookie:
-          `${cookieStore.get("better-auth.session_token")?.name
-          }=${
-            cookieStore.get("better-auth.session_token")?.value}`,
+        cookie: `${cookieStore.get("better-auth.session_token")?.name}=${
+          cookieStore.get("better-auth.session_token")?.value
+        }`,
       },
-    },
+    }
   );
 
   return organizations;
@@ -77,7 +74,7 @@ export async function getOrganizations() {
 
 export async function setActiveOrganization(
   organizationId: string,
-  organizationSlug: string,
+  organizationSlug: string
 ) {
   const cookieStore = await cookies();
 
@@ -87,18 +84,17 @@ export async function setActiveOrganization(
       baseURL,
       headers: {
         "Content-Type": "application/json",
-        "Origin": "http://localhost:3000",
-        "cookie":
-          `${cookieStore.get("better-auth.session_token")?.name
-          }=${
-            cookieStore.get("better-auth.session_token")?.value}`,
+        Origin: env.NEXT_PUBLIC_URL,
+        cookie: `${cookieStore.get("better-auth.session_token")?.name}=${
+          cookieStore.get("better-auth.session_token")?.value
+        }`,
       },
       method: "POST",
       body: JSON.stringify({
         organizationId,
         organizationSlug,
       }),
-    },
+    }
   );
 
   return activeOrganization;

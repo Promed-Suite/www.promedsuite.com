@@ -8,9 +8,9 @@ expand(
   config({
     path: path.resolve(
       process.cwd(),
-      process.env.NODE_ENV === "test" ? ".env.test" : ".env",
+      process.env.NODE_ENV === "test" ? ".env.test" : ".env"
     ),
-  }),
+  })
 );
 
 const EnvSchema = z
@@ -34,6 +34,7 @@ const EnvSchema = z
     BETTER_AUTH_URL: z.string(),
     SENDGRID_API_KEY: z.string(),
     SENDGRID_EMAIL_FROM: z.string(),
+    FRONTEND_URL: z.string(),
   })
   .superRefine((input, ctx) => {
     if (input.NODE_ENV === "production" && !input.DATABASE_AUTH_TOKEN) {

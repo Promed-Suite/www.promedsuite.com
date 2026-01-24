@@ -7,8 +7,8 @@ export function createClient() {
   // In browser, use relative path; in SSR, use full URL
   const baseUrl =
     typeof window !== "undefined"
-      ? process.env.NEXT_PUBLIC_API_URL || "/api"
-      : process.env.API_URL || "http://localhost:4000";
+      ? process.env.NEXT_PUBLIC_BACKEND_URL || "/api"
+      : process.env.BACKEND_URL || "http://localhost:4000";
 
   return hc<AppType>(baseUrl, { init: { credentials: "include" } });
 }
