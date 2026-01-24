@@ -1,5 +1,9 @@
 import app from "../src/app";
 
-export default {
+const handler = {
   fetch: app.fetch,
 };
+
+export default handler;
+
+export { app };
