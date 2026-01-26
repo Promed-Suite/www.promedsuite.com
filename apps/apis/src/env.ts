@@ -49,7 +49,7 @@ const EnvSchema = z
     } else if (input.NODE_ENV === "production" && !input.NODEJS_HELPERS) {
       ctx.addIssue({
         code: z.ZodIssueCode.invalid_type,
-        expected: "string",
+        expected: "number",
         received: "undefined",
         path: ["NODEJS_HELPERS"],
         message: "Must be set when NODE_ENV is 'production'",
