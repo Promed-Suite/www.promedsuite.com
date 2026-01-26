@@ -1,27 +1,10 @@
-import antfu from "@antfu/eslint-config";
+import createConfig from "@workspace/eslint-config/create-config";
+import drizzle from "eslint-plugin-drizzle";
 
-export default antfu({
-  type: "app",
-  typescript: true,
-  formatters: true,
-  stylistic: {
-    indent: 2,
-    semi: true,
-    quotes: "double",
-  },
-  ignores: ["**/migrations/*"],
-}, {
+export default createConfig({
+  ignores: ["src/db/migrations/*", "public/*"],
+  plugins: { drizzle },
   rules: {
-    "no-console": ["warn"],
-    "antfu/no-top-level-await": ["off"],
-    "node/prefer-global/process": ["off"],
-    "node/no-process-env": ["error"],
-    "perfectionist/sort-imports": ["error", {
-      tsconfigRootDir: ".",
-    }],
-    "unicorn/filename-case": ["error", {
-      case: "kebabCase",
-      ignore: ["README.md"],
-    }],
+    ...drizzle.configs.recommended.rules,
   },
 });
