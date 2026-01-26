@@ -1,54 +1,12 @@
 {
   "version": "7",
-  "dialect": "postgresql",
+  "dialect": "sqlite",
   "entries": [
     {
       "idx": 0,
-      "version": "7",
-      "when": 1765148378981,
-      "tag": "0000_solid_gwen_stacy",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1766099197676,
-      "tag": "0001_wide_mathemanic",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1766377046620,
-      "tag": "0002_workable_white_queen",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1766393025515,
-      "tag": "0003_broken_iron_fist",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1766393371258,
-      "tag": "0004_giant_wilson_fisk",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1766394204010,
-      "tag": "0005_nappy_chameleon",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1766403652429,
-      "tag": "0006_loud_omega_sentinel",
+      "version": "6",
+      "when": 1728133964232,
+      "tag": "0000_same_squadron_sinister",
       "breakpoints": true
     }
   ]
