@@ -5,7 +5,7 @@ import benefits from "@/routes/benefits/benefit.index";
 import corporate from "@/routes/corporate/corporate.index";
 import index from "@/routes/index.route";
 
-const app = createApp();
+const app = createApp().basePath("/api");
 
 configureOpenAPI(app);
 
