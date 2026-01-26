@@ -5,16 +5,16 @@
   "license": "MIT",
   "exports": {
     ".": {
-      "types": "./dist/app.d.ts",
-      "import": "./dist/app.js"
+      "types": "./dist/src/app.d.ts",
+      "import": "./dist/src/app.js"
     },
     "./auth": {
-      "types": "./dist/lib/auth.d.ts",
-      "import": "./dist/lib/auth.js"
+      "types": "./dist/src/lib/auth.d.ts",
+      "import": "./dist/src/lib/auth.js"
     },
     "./db": {
-      "types": "./dist/db/index.d.ts",
-      "import": "./dist/db/index.js"
+      "types": "./dist/src/db/index.d.ts",
+      "import": "./dist/src/db/index.js"
     }
   },
   "scripts": {

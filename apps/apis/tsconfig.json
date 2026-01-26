@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-
     "incremental": true, // Speeds up builds
     // Add these for better type exports
     "composite": true, // Enables project references
@@ -9,7 +8,7 @@
     "jsxImportSource": "hono/jsx",
     "lib": ["ESNext"], // Add this
     "baseUrl": "./",
-    "rootDir": "./src", // Add this to keep structure clean
+    // "rootDir": "./src", // Add this to keep structure clean
     "module": "ESNext",
     "moduleResolution": "Bundler",
 
@@ -30,7 +29,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*"], // Add this to be explicit
+  "include": ["src/**/*", "package.json"], // Add this to be explicit
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"],
   "tsc-alias": {
     "resolveFullPaths": true
