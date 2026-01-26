@@ -12,7 +12,6 @@ import { env } from "@/env";
 export type WebAuthClient = ReturnType<typeof createAuthClient>;
 
 export const authClient = createAuthClient({
-  // ! TODO: Add baseURL from env
   baseURL: env.NEXT_PUBLIC_URL,
   plugins: [
     adminClient(),
