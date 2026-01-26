@@ -46,8 +46,7 @@ const EnvSchema = z
         path: ["DATABASE_AUTH_TOKEN"],
         message: "Must be set when NODE_ENV is 'production'",
       });
-    }
-    if (input.NODE_ENV === "production" && !input.NODEJS_HELPERS) {
+    } else if (input.NODE_ENV === "production" && !input.NODEJS_HELPERS) {
       ctx.addIssue({
         code: z.ZodIssueCode.invalid_type,
         expected: "string",
