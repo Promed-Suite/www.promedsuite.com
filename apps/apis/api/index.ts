@@ -1,4 +1,5 @@
 import { handle } from "@hono/node-server/vercel";
+import "hono";
 
 import app from "../dist/src/app.js";
 
