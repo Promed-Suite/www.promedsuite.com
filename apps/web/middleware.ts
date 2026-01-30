@@ -29,7 +29,7 @@ export default async function middleware(request: NextRequest) {
 
     const publicRoutes = [
       "/login",
-      "/signup",
+      "/sign-up",
       "/api/auth", // Allow auth API calls
       "/forgot-password",
       "/reset-password",
