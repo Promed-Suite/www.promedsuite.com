@@ -24,20 +24,20 @@ export default async function middleware(request: NextRequest) {
         },
         // Add timeout and retry logic for production
         timeout: 5000,
-      }
+      },
     );
 
     const publicRoutes = [
-      "/login",
-      "/signup",
       "/api/auth", // Allow auth API calls
+      "/sign-up",
+      "/login",
       "/forgot-password",
       "/reset-password",
       "/verify-email",
     ];
 
-    const isPublicRoute = publicRoutes.some((route) =>
-      request.nextUrl.pathname.startsWith(route)
+    const isPublicRoute = publicRoutes.some(route =>
+      request.nextUrl.pathname.startsWith(route),
     );
 
     if (isPublicRoute) {
@@ -49,7 +49,8 @@ export default async function middleware(request: NextRequest) {
     }
 
     return NextResponse.next();
-  } catch (error) {
+  }
+  catch (error) {
     console.error("Middleware session fetch error:", error);
     // On error, allow the request to proceed but log it
     // You might want to redirect to login or show error page
