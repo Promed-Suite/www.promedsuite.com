@@ -1,6 +1,7 @@
-import { cpSync, existsSync, mkdirSync } from "fs";
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
+/* eslint-disable no-console */
+import { cpSync, existsSync, mkdirSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = join(__dirname, "..");
@@ -19,7 +20,7 @@ try {
   // Check if standalone directory exists
   if (!existsSync(standaloneDir)) {
     console.error(
-      "Standalone directory not found. Make sure next build completed successfully."
+      "Standalone directory not found. Make sure next build completed successfully.",
     );
     process.exit(1);
   }
@@ -40,12 +41,14 @@ try {
   if (existsSync(staticDir)) {
     console.log("Copying static files...");
     cpSync(staticDir, standaloneStaticDir, { recursive: true });
-  } else {
+  }
+  else {
     console.warn("Warning: .next/static directory not found");
   }
 
   console.log("✅ Assets copied successfully!");
-} catch (error) {
+}
+catch (error) {
   console.error("❌ Error copying assets:", error.message);
   process.exit(1);
 }

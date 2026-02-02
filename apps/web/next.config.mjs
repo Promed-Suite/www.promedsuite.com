@@ -20,10 +20,10 @@ const nextConfig = {
     "@t3-oss/env-core",
   ],
   async rewrites() {
-    const isLocal =
-      process.env.NODE_ENV !== "production" && !process.env.VERCEL;
-    const backendUrl =
-      process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
+    const isLocal
+      = process.env.NODE_ENV !== "production" && !process.env.VERCEL;
+    const backendUrl
+      = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
 
     return [
       {
