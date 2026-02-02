@@ -1,3 +1,4 @@
+/* eslint-disable next/no-img-element */
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,14 +34,9 @@ import {
 } from "@workspace/ui/components/select";
 import { Textarea } from "@workspace/ui/components/textarea";
 
-import type {
-  BioDataEntity,
-  BioDataFormData,
-} from "../../schemas/bio-data";
+import type { BioDataEntity, BioDataFormData } from "../../schemas/bio-data";
 
-import {
-  bioDataFormSchema,
-} from "../../schemas/bio-data";
+import { bioDataFormSchema } from "../../schemas/bio-data";
 
 type BioDataFormProps = {
   bioData?: BioDataEntity;

@@ -93,7 +93,7 @@ export function CreateDepartmentTab({ setActiveTab }: ICreateDepartmentTab) {
             onError: (error) => {
               console.log(error.error.message);
               toast.error(
-                error.error.message || "Failed to create organization."
+                error.error.message || "Failed to create organization.",
               );
             },
             onSuccess: async () => {
@@ -104,12 +104,13 @@ export function CreateDepartmentTab({ setActiveTab }: ICreateDepartmentTab) {
                 setActiveTab("departments");
               }, 1000);
             },
-          }
+          },
         );
 
         // Reset form
         form.reset();
-      } catch (error) {
+      }
+      catch (error) {
         console.error(error);
         toast.error("Failed to create department", {
           description: "Please try again later.",
@@ -134,7 +135,8 @@ export function CreateDepartmentTab({ setActiveTab }: ICreateDepartmentTab) {
         if (error) {
           throw new Error(error.message);
         }
-      } catch (error) {
+      }
+      catch (error) {
         console.error("Fetching users failed:", error);
         redirect("/");
       }
@@ -173,13 +175,14 @@ export function CreateDepartmentTab({ setActiveTab }: ICreateDepartmentTab) {
               <form.Field
                 name="name"
                 children={(field) => {
-                  const isInvalid =
-                    field.state.meta.isTouched && !field.state.meta.isValid;
+                  const isInvalid
+                    = field.state.meta.isTouched && !field.state.meta.isValid;
 
                   return (
                     <Field data-invalid={isInvalid} className="space-y-2">
                       <FieldLabel htmlFor={field.name}>
-                        Department Name{" "}
+                        Department Name
+                        {" "}
                         <span className="text-destructive">*</span>
                       </FieldLabel>
                       <Input
@@ -187,7 +190,7 @@ export function CreateDepartmentTab({ setActiveTab }: ICreateDepartmentTab) {
                         name={field.name}
                         value={field.state.value ?? ""}
                         onBlur={field.handleBlur}
-                        onChange={(e) => field.handleChange(e.target.value)}
+                        onChange={e => field.handleChange(e.target.value)}
                         placeholder="e.g., Customer Service, Marketing, Sales"
                         required
                       />
@@ -204,7 +207,7 @@ export function CreateDepartmentTab({ setActiveTab }: ICreateDepartmentTab) {
               {/* Description Field */}
               <form.Field
                 name="description"
-                children={(field) => (
+                children={field => (
                   <Field className="space-y-2">
                     <FieldLabel htmlFor={field.name}>Description</FieldLabel>
                     <Textarea
@@ -213,7 +216,7 @@ export function CreateDepartmentTab({ setActiveTab }: ICreateDepartmentTab) {
                       placeholder="Brief description of the department's purpose and responsibilities"
                       value={field.state.value ?? ""}
                       onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.value)}
+                      onChange={e => field.handleChange(e.target.value)}
                       rows={4}
                     />
                     <p className="text-xs text-muted-foreground">
@@ -227,13 +230,14 @@ export function CreateDepartmentTab({ setActiveTab }: ICreateDepartmentTab) {
               <form.Field
                 name="organizationHead"
                 children={(field) => {
-                  const isInvalid =
-                    field.state.meta.isTouched && !field.state.meta.isValid;
+                  const isInvalid
+                    = field.state.meta.isTouched && !field.state.meta.isValid;
 
                   return (
                     <Field data-invalid={isInvalid} className="space-y-2">
                       <FieldLabel htmlFor={field.name}>
-                        Department Head{" "}
+                        Department Head
+                        {" "}
                         <span className="text-destructive">*</span>
                       </FieldLabel>
 
@@ -297,7 +301,7 @@ export function CreateDepartmentTab({ setActiveTab }: ICreateDepartmentTab) {
               </div>
               {/* Submit Button */}
               <form.Subscribe
-                selector={(state) => [state.canSubmit, state.isSubmitting]}
+                selector={state => [state.canSubmit, state.isSubmitting]}
                 children={([canSubmit, isSubmitting]) => (
                   <Field className="flex gap-3">
                     <Button
@@ -305,17 +309,19 @@ export function CreateDepartmentTab({ setActiveTab }: ICreateDepartmentTab) {
                       className="flex-1"
                       disabled={!canSubmit || isSubmitting}
                     >
-                      {isSubmitting ? (
-                        <>
-                          <Spinner />
-                          Creating...
-                        </>
-                      ) : (
-                        <>
-                          <Building2 className="mr-2 h-4 w-4" />
-                          Create Department
-                        </>
-                      )}
+                      {isSubmitting
+                        ? (
+                            <>
+                              <Spinner />
+                              Creating...
+                            </>
+                          )
+                        : (
+                            <>
+                              <Building2 className="mr-2 h-4 w-4" />
+                              Create Department
+                            </>
+                          )}
                     </Button>
                   </Field>
                 )}

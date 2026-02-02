@@ -1,15 +1,19 @@
+/* eslint-disable no-console */
+/* eslint-disable node/no-process-env */
+
 import type { Configuration } from "electron-builder";
-import { build, Platform } from "electron-builder";
 import type { CopySyncOptions } from "node:fs";
+
+import { build, Platform } from "electron-builder";
 import { cpSync } from "node:fs";
 import path from "node:path";
 import process, { exit } from "node:process";
 
 const version = process.env.VITE_APP_VERSION;
 const isDev = process.env.NODE_ENV === "development";
-const appName = isDev ? "ElectronAppDev" : "ElectronApp";
-const appId = isDev ? "com.electron.app" : "com.electron-dev.app";
-const shortcutName = isDev ? "Electron App Dev" : "Electron App";
+const appName = isDev ? "PromedSuiteDev" : "PromedSuite";
+const appId = isDev ? "com.promedsuite-dev.app" : "com.promedsuite.app";
+const shortcutName = isDev ? "Promed Suite Dev" : "Promed Suite App";
 
 console.log("Development environment:", isDev, appName);
 console.log("APP version:", version);
@@ -21,18 +25,18 @@ const copySyncOptions: CopySyncOptions = {
   /**
    * Filter out source map files
    */
-  filter: (src) => !src.endsWith(".map") && !src.endsWith(".d.ts"),
+  filter: src => !src.endsWith(".map") && !src.endsWith(".d.ts"),
 };
 
 cpSync(
   path.join(workDir, "../web/.next/standalone"),
   path.join(workDir, "./dist/web"),
-  copySyncOptions
+  copySyncOptions,
 );
 cpSync(
   path.join(workDir, "../preload/dist"),
   path.join(workDir, "./dist/preload"),
-  copySyncOptions
+  copySyncOptions,
 );
 
 const options: Configuration = {
@@ -118,6 +122,7 @@ const options: Configuration = {
 
 build({
   targets: Platform.current().createTarget(),
+  // targets: Platform.WINDOWS.createTarget(),
   config: options,
   publish: process.env.CI ? "always" : "never",
 })
@@ -126,7 +131,7 @@ build({
     const outDir = path.join(workDir, options.directories!.output!);
     console.log(
       "\x1B[32m",
-      `Build complete! 🎉🎉🎉 Everything you need is in ${outDir}`
+      `Build complete! 🎉🎉🎉 Everything you need is in ${outDir}`,
     );
   })
   .catch((error) => {

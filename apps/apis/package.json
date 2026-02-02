@@ -58,6 +58,7 @@
     "cross-env": "^10.0.0",
     "drizzle-kit": "^0.31.4",
     "eslint": "^9.32.0",
+    "eslint-plugin-drizzle": "^0.2.3",
     "eslint-plugin-format": "^1.0.1",
     "tsc-alias": "^1.8.16",
     "tsx": "^4.19.4",

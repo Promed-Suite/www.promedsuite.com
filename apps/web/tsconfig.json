@@ -11,12 +11,12 @@
         "name": "next"
       }
     ],
+    "typeRoots": ["./node_modules/@types"],
+    "types": ["node"],
     // Keep these for type exports
     "declaration": false,
     "declarationMap": false,
-    "emitDeclarationOnly": false, // Ensure declarations are emitted
-    "typeRoots": ["./node_modules/@types"],
-    "types": ["node"]
+    "emitDeclarationOnly": false // Ensure declarations are emitted
   },
   "include": [
     "next-env.d.ts",

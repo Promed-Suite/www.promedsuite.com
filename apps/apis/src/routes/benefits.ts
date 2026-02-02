@@ -82,6 +82,7 @@ app.patch(
 );
 
 // DELETE One
+// eslint-disable-next-line drizzle/enforce-delete-with-where
 app.delete("/benefits/:code", async (c) => {
   const code = c.req.param("code");
 
