@@ -49,6 +49,7 @@ async function createWindow() {
     width: 1366,
     height: 768,
     show: false, // Hide until ready
+    autoHideMenuBar: true,
     webPreferences: {
       webviewTag: false,
       sandbox: !isLinux,
