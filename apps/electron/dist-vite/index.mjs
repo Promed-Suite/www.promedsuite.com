@@ -250,59 +250,38 @@ function requireIpcMain() {
   hasRequiredIpcMain = 1;
   (function(exports$1) {
     Object.defineProperty(exports$1, Symbol.toStringTag, { value: "Module" });
-    const electron = require$$0;
-    class IPCMain {
+    const t = require$$0;
+    class i {
       channel;
       listeners = {};
-      constructor(channel = "IPC-bridge") {
-        this.channel = channel;
-        this.bindMessage();
+      constructor(e = "IPC-bridge") {
+        this.channel = e, this.bindMessage();
       }
-      on(name, fn) {
-        if (this.listeners[name])
-          throw new Error(`Handler for message ${String(name)} already exists`);
-        this.listeners[name] = fn;
+      on(e, s) {
+        if (this.listeners[e]) throw new Error(`Handler for message ${String(e)} already exists`);
+        this.listeners[e] = s;
       }
-      off(action) {
-        if (this.listeners[action]) {
-          delete this.listeners[action];
-        }
+      off(e) {
+        this.listeners[e] && delete this.listeners[e];
       }
-      async send(name, ...payload) {
-        const windows = electron.BrowserWindow.getAllWindows();
-        windows.forEach((window) => {
-          window.webContents.send(this.channel, {
-            name,
-            payload
-          });
+      async send(e, ...s) {
+        t.BrowserWindow.getAllWindows().forEach((r) => {
+          r.webContents.send(this.channel, { name: e, payload: s });
         });
       }
       bindMessage() {
-        electron.ipcMain.handle(this.channel, this.handleReceivingMessage.bind(this));
+        t.ipcMain.handle(this.channel, this.handleReceivingMessage.bind(this));
       }
-      async handleReceivingMessage(event, payload) {
+      async handleReceivingMessage(e, s) {
         try {
-          if (this.listeners[payload.name]) {
-            const res = await this.listeners[payload.name](
-              event,
-              ...payload.payload
-            );
-            return {
-              type: "success",
-              result: res
-            };
-          } else {
-            throw new Error(`Unknown IPC message ${String(payload.name)}`);
-          }
-        } catch (e) {
-          return {
-            type: "error",
-            error: e.toString()
-          };
+          if (this.listeners[s.name]) return { type: "success", result: await this.listeners[s.name](e, ...s.payload) };
+          throw new Error(`Unknown IPC message ${String(s.name)}`);
+        } catch (n) {
+          return { type: "error", error: n.toString() };
         }
       }
     }
-    exports$1.IPCMain = IPCMain;
+    exports$1.IPCMain = i;
   })(ipcMain$1);
   return ipcMain$1;
 }

@@ -300,7 +300,7 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { Facebook, Linkedin, Lock, Mail, Twitter } from "lucide-react";
+import { Facebook, Linkedin, Twitter } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
