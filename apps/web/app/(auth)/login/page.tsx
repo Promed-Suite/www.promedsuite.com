@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { redirect } from "next/navigation";
 
 import { LoginForm } from "@/components/login-form";
@@ -11,8 +12,23 @@ export default async function LoginPage() {
   }
 
   return (
-    <div className="bg-[url(/img/9175929_1099.jpg)] bg-no-repeat bg-cover flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
-      <div className="w-full max-w-6xl">
+    <div className="relative flex h-svh flex-col items-center justify-center gap-6 p-6 md:p-10 overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0 -z-10">
+        <Image
+          src="/img/9175929_1099.webp"
+          alt="Background"
+          fill
+          priority
+          className="object-cover"
+          sizes="100vw"
+          quality={90}
+        />
+        {/* Optional overlay for better text readability */}
+        <div className="absolute inset-0 bg-black/20" />
+      </div>
+
+      <div className="w-full max-w-6xl relative z-10">
         <LoginForm />
       </div>
     </div>
