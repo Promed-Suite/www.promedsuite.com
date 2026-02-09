@@ -121,8 +121,8 @@ const options: Configuration = {
 };
 
 build({
-  targets: Platform.current().createTarget(),
-  // targets: Platform.WINDOWS.createTarget(),
+  // targets: Platform.current().createTarget(),
+  targets: Platform.WINDOWS.createTarget(),
   config: options,
   publish: process.env.CI ? "always" : "never",
 })
