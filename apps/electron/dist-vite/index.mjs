@@ -1,31 +1,34 @@
-import L, { app as n, dialog as N, BrowserWindow as b, Tray as M, Menu as j, nativeTheme as O, shell as $, session as V, net as q } from "electron";
-import U, { join as h } from "node:path";
-import { parseArgs as R } from "node:util";
-import { setTimeout as _ } from "node:timers/promises";
-import B from "electron-store";
-import H from "electron-updater";
-import { existsSync as z } from "node:fs";
-import { readdir as G, stat as Q, rm as J } from "node:fs/promises";
-import { format as K } from "date-fns";
-import d from "electron-log/main.js";
+import require$$0, { app, dialog, BrowserWindow, Tray, Menu, nativeTheme, shell, session, net } from "electron";
+import path, { join } from "node:path";
+import { parseArgs } from "node:util";
+import { setTimeout as setTimeout$1 } from "node:timers/promises";
+import Store from "electron-store";
+import electronUpdater from "electron-updater";
+import { existsSync } from "node:fs";
+import { readdir, stat, rm } from "node:fs/promises";
+import { format } from "date-fns";
+import log from "electron-log/main.js";
 globalThis.__dirname ||= import.meta.dirname;
-n.isPackaged || (n.getVersion = () => "0.1.0");
-N.showErrorBox = function(e, t) {
-  console.error(`Error logged without system dialog: ${e}
-${t}`);
+if (!app.isPackaged) {
+  app.getVersion = () => "0.0.1";
+}
+dialog.showErrorBox = function(title, content) {
+  console.error(`Error logged without system dialog: ${title}
+${content}`);
 };
-process.on("uncaughtException", (e) => {
-  console.error("Uncaught exception:", e);
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught exception:", error);
 });
-process.on("unhandledRejection", (e) => {
-  console.error("Unhandled promise rejection:", e);
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled promise rejection:", reason);
 });
-const S = n.isPackaged, g = R({
-  options: {
+const isPackaged = app.isPackaged;
+const appCliStartArgs = (() => {
+  const options = {
     /** Log level */
     "app-log-level": {
       type: "string",
-      default: S ? "info" : "silly"
+      default: isPackaged ? "info" : "silly"
       // Default: info
       // default: 'info',  // Default: info
     },
@@ -34,29 +37,35 @@ const S = n.isPackaged, g = R({
       type: "string",
       default: ""
     }
-  },
-  strict: !1
-  // Default: true, throws on unknown options
-}).values;
-g["app-log-level"];
-const X = g["app-env"] ? g["app-env"] === "dev" : !1;
-g["app-env"] && g["app-env"];
-process.platform;
-process.platform;
-const Y = process.platform === "linux", k = n.getPath("sessionData"), m = {
+  };
+  const args = parseArgs({
+    options,
+    strict: false
+    // Default: true, throws on unknown options
+  });
+  return args.values;
+})();
+appCliStartArgs["app-log-level"] === "debug";
+const isDev = appCliStartArgs["app-env"] ? appCliStartArgs["app-env"] === "dev" : false;
+appCliStartArgs["app-env"] ? appCliStartArgs["app-env"] === "prod" : true;
+process.platform === "darwin";
+process.platform === "win32";
+const isLinux = process.platform === "linux";
+const sessionDir = app.getPath("sessionData");
+const appConfig = {
   /** Application data root directory */
-  sessionDir: k,
+  sessionDir,
   /** System locale */
-  lang: n.getLocale(),
+  lang: app.getLocale(),
   /** Temporary files directory */
-  tempDir: h(k, "temp"),
+  tempDir: join(sessionDir, "temp"),
   /** Application logs directory */
-  logsDir: n.getPath("logs"),
+  logsDir: app.getPath("logs"),
   /** Configuration file */
-  configFile: h(k, "config.json"),
+  configFile: join(sessionDir, "config.json"),
   /** Preload script file path */
   get preloadFilePath() {
-    return S ? h(import.meta.dirname, "./preload/index.cjs") : h(import.meta.dirname, "../../preload/dist/index.cjs");
+    return isPackaged ? join(import.meta.dirname, "./preload/index.cjs") : join(import.meta.dirname, "../../preload/dist/index.cjs");
   },
   /** Web resource base URL */
   // get webBaseURL() {
@@ -65,157 +74,240 @@ const Y = process.platform === "linux", k = n.getPath("sessionData"), m = {
   //     : `file://${join(import.meta.dirname, './web/index.html')}`
   // },
   get webBaseURL() {
-    return "http://localhost:3000";
+    return !isPackaged && true ? "http://localhost:3000" : `http://localhost:3000`;
   }
 };
-console.debug("appConfig", m);
-const u = X ? "bqy-dev" : "bqy", P = "bqy-media";
-let s, l;
-const Z = 1e3, ee = 20, te = Z / ee;
-async function oe() {
-  s = new b({
+console.debug("appConfig", appConfig);
+const appProtocolName = isDev ? "bqy-dev" : "bqy";
+const mediaProtocolName = "bqy-media";
+let loadingWindow;
+let mainWindow;
+const FADE_DURATION_MS = 1e3;
+const FADE_STEPS = 20;
+const FADE_INTERVAL = FADE_DURATION_MS / FADE_STEPS;
+async function createLoadingWindow() {
+  loadingWindow = new BrowserWindow({
     width: 500,
     height: 500,
-    frame: !1,
-    transparent: !0,
-    hasShadow: !0,
+    frame: false,
+    transparent: true,
+    hasShadow: true,
     webPreferences: {
-      nodeIntegration: !0,
-      contextIsolation: !1,
-      webSecurity: !1
+      nodeIntegration: true,
+      contextIsolation: false,
+      webSecurity: false
     }
   });
   try {
-    await s.loadFile(
-      U.join(import.meta.dirname, "../resources/loading.html")
+    await loadingWindow.loadFile(
+      path.join(import.meta.dirname, "../resources/loading.html")
     );
-  } catch (e) {
-    throw console.error("Failed to load loading screen:", e), s = null, e;
+  } catch (err) {
+    console.error("Failed to load loading screen:", err);
+    loadingWindow = null;
+    throw err;
   }
-  return s.on("closed", () => {
-    s = null;
-  }), s;
+  loadingWindow.on("closed", () => {
+    loadingWindow = null;
+  });
+  return loadingWindow;
 }
-async function ne() {
-  const e = new b({
+async function createWindow() {
+  const browserWindow = new BrowserWindow({
     width: 1366,
     height: 768,
-    show: !1,
+    show: false,
     // Hide until ready
-    autoHideMenuBar: !0,
+    autoHideMenuBar: true,
     webPreferences: {
-      webviewTag: !1,
-      sandbox: !Y,
-      spellcheck: !1,
-      preload: m.preloadFilePath,
-      nodeIntegration: !1,
-      contextIsolation: !0
+      webviewTag: false,
+      sandbox: !isLinux,
+      spellcheck: false,
+      preload: appConfig.preloadFilePath,
+      nodeIntegration: false,
+      contextIsolation: true
     }
   });
-  return e.loadURL(
-    "https://www-promedsuite-com-web.vercel.app/"
-  ).catch((o) => {
-    throw console.error("Failed to load main window:", o), s && !s.isDestroyed() && (s.webContents.send(
-      "loading-error",
-      `Failed to load app: ${o.message}`
-    ), setTimeout(() => {
-      s && !s.isDestroyed() && s.close();
-    }, 3e3)), o;
-  }), e.once("ready-to-show", () => {
-    se(), e.show(), S || e.webContents.openDevTools({ mode: "detach" });
-  }), e.on("closed", () => {
-    l = void 0;
-  }), e.webContents.on("did-fail-load", (o, r, a, c) => {
-    console.log("Failed to load:", c, a);
-  }), e.webContents.on("did-navigate-in-page", (o, r, a) => {
-    console.log("Navigated in page to:", r, a);
-  }), e;
+  const loadPromise = browserWindow.loadURL(
+    `https://www-promedsuite-com-web.vercel.app/`
+  );
+  loadPromise.catch((err) => {
+    console.error("Failed to load main window:", err);
+    if (loadingWindow && !loadingWindow.isDestroyed()) {
+      loadingWindow.webContents.send(
+        "loading-error",
+        `Failed to load app: ${err.message}`
+      );
+      setTimeout(() => {
+        if (loadingWindow && !loadingWindow.isDestroyed()) {
+          loadingWindow.close();
+        }
+      }, 3e3);
+    }
+    throw err;
+  });
+  browserWindow.once("ready-to-show", () => {
+    fadeOutLoadingScreen();
+    browserWindow.show();
+    if (!isPackaged) {
+      browserWindow.webContents.openDevTools({ mode: "detach" });
+    }
+  });
+  browserWindow.on("closed", () => {
+    mainWindow = void 0;
+  });
+  browserWindow.webContents.on("did-fail-load", (event, errorCode, errorDescription, validatedURL) => {
+    console.log("Failed to load:", validatedURL, errorDescription);
+  });
+  browserWindow.webContents.on("did-navigate-in-page", (event, url, isMainFrame) => {
+    console.log("Navigated in page to:", url, isMainFrame);
+  });
+  return browserWindow;
 }
-function se() {
-  if (s && !s.isDestroyed()) {
-    let e = 1;
-    const t = setInterval(() => {
-      s && !s.isDestroyed() ? (e -= 0.05, e <= 0 ? (clearInterval(t), s.close()) : s.setOpacity(e)) : clearInterval(t);
-    }, te);
+function fadeOutLoadingScreen() {
+  if (loadingWindow && !loadingWindow.isDestroyed()) {
+    let opacity = 1;
+    const fadeInterval = setInterval(() => {
+      if (loadingWindow && !loadingWindow.isDestroyed()) {
+        opacity -= 0.05;
+        if (opacity <= 0) {
+          clearInterval(fadeInterval);
+          loadingWindow.close();
+        } else {
+          loadingWindow.setOpacity(opacity);
+        }
+      } else {
+        clearInterval(fadeInterval);
+      }
+    }, FADE_INTERVAL);
   }
 }
-async function D() {
-  if (l && !l.isDestroyed())
-    return l.isMinimized() && l.restore(), l.setSkipTaskbar(!1), l.setAlwaysOnTop(!0), l.show(), l.focus(), l.setAlwaysOnTop(!1), l;
+async function restoreOrCreateWindow() {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    if (mainWindow.isMinimized()) {
+      mainWindow.restore();
+    }
+    mainWindow.setSkipTaskbar(false);
+    mainWindow.setAlwaysOnTop(true);
+    mainWindow.show();
+    mainWindow.focus();
+    mainWindow.setAlwaysOnTop(false);
+    return mainWindow;
+  }
   try {
-    return await oe(), l = await ne(), l;
-  } catch (e) {
-    throw console.error("Failed to create windows:", e), s && !s.isDestroyed() && s.close(), e;
+    await createLoadingWindow();
+    mainWindow = await createWindow();
+    return mainWindow;
+  } catch (error) {
+    console.error("Failed to create windows:", error);
+    if (loadingWindow && !loadingWindow.isDestroyed()) {
+      loadingWindow.close();
+    }
+    throw error;
   }
 }
-function f() {
-  return l;
+function getMainWindow() {
+  return mainWindow;
 }
-let p;
-async function ae() {
-  if (await _(), p)
-    return p.setContextMenu(I()), p;
-  const e = U.join(import.meta.dirname, "..", "resources/tray.png");
-  return p = new M(e), p.setToolTip(n.getName()), p.setContextMenu(I()), p.on("click", () => {
-    f()?.show(), f()?.setSkipTaskbar(!1);
-  }), p;
+let tray;
+async function createTray() {
+  await setTimeout$1();
+  if (tray) {
+    tray.setContextMenu(createContextMenu());
+    return tray;
+  }
+  const iconPath = path.join(import.meta.dirname, "..", "resources/tray.png");
+  tray = new Tray(iconPath);
+  tray.setToolTip(app.getName());
+  tray.setContextMenu(createContextMenu());
+  tray.on("click", () => {
+    getMainWindow()?.show();
+    getMainWindow()?.setSkipTaskbar(false);
+  });
+  return tray;
 }
-function I() {
-  return j.buildFromTemplate([
+function createContextMenu() {
+  return Menu.buildFromTemplate([
     {
       label: "show",
       click: () => {
-        f()?.show();
+        getMainWindow()?.show();
       }
     },
     {
       label: "exit",
       click: () => {
-        p.destroy(), f()?.destroy();
+        tray.destroy();
+        getMainWindow()?.destroy();
       }
     }
   ]);
 }
-var C = {}, F;
-function re() {
-  return F || (F = 1, (function(e) {
-    Object.defineProperty(e, Symbol.toStringTag, { value: "Module" });
-    const t = L;
-    class o {
+var ipcMain$1 = {};
+var hasRequiredIpcMain;
+function requireIpcMain() {
+  if (hasRequiredIpcMain) return ipcMain$1;
+  hasRequiredIpcMain = 1;
+  (function(exports$1) {
+    Object.defineProperty(exports$1, Symbol.toStringTag, { value: "Module" });
+    const electron = require$$0;
+    class IPCMain {
       channel;
       listeners = {};
-      constructor(a = "IPC-bridge") {
-        this.channel = a, this.bindMessage();
+      constructor(channel = "IPC-bridge") {
+        this.channel = channel;
+        this.bindMessage();
       }
-      on(a, c) {
-        if (this.listeners[a]) throw new Error(`Handler for message ${String(a)} already exists`);
-        this.listeners[a] = c;
+      on(name, fn) {
+        if (this.listeners[name])
+          throw new Error(`Handler for message ${String(name)} already exists`);
+        this.listeners[name] = fn;
       }
-      off(a) {
-        this.listeners[a] && delete this.listeners[a];
+      off(action) {
+        if (this.listeners[action]) {
+          delete this.listeners[action];
+        }
       }
-      async send(a, ...c) {
-        t.BrowserWindow.getAllWindows().forEach((v) => {
-          v.webContents.send(this.channel, { name: a, payload: c });
+      async send(name, ...payload) {
+        const windows = electron.BrowserWindow.getAllWindows();
+        windows.forEach((window) => {
+          window.webContents.send(this.channel, {
+            name,
+            payload
+          });
         });
       }
       bindMessage() {
-        t.ipcMain.handle(this.channel, this.handleReceivingMessage.bind(this));
+        electron.ipcMain.handle(this.channel, this.handleReceivingMessage.bind(this));
       }
-      async handleReceivingMessage(a, c) {
+      async handleReceivingMessage(event, payload) {
         try {
-          if (this.listeners[c.name]) return { type: "success", result: await this.listeners[c.name](a, ...c.payload) };
-          throw new Error(`Unknown IPC message ${String(c.name)}`);
-        } catch (v) {
-          return { type: "error", error: v.toString() };
+          if (this.listeners[payload.name]) {
+            const res = await this.listeners[payload.name](
+              event,
+              ...payload.payload
+            );
+            return {
+              type: "success",
+              result: res
+            };
+          } else {
+            throw new Error(`Unknown IPC message ${String(payload.name)}`);
+          }
+        } catch (e) {
+          return {
+            type: "error",
+            error: e.toString()
+          };
         }
       }
     }
-    e.IPCMain = o;
-  })(C)), C;
+    exports$1.IPCMain = IPCMain;
+  })(ipcMain$1);
+  return ipcMain$1;
 }
-var ie = re();
-const le = {
+var ipcMainExports = requireIpcMain();
+const schema = {
   theme: {
     type: "string",
     enum: ["system", "light", "dark"],
@@ -223,11 +315,11 @@ const le = {
   },
   autoLaunch: {
     type: "boolean",
-    default: !1
+    default: false
   },
   allowPrerelease: {
     type: "boolean",
-    default: !1
+    default: false
   },
   downloadMirror: {
     anyOf: [{ type: "string" }, { type: "null" }]
@@ -239,203 +331,348 @@ const le = {
     type: "string",
     default: ""
   }
-}, T = new B({
-  schema: le,
-  clearInvalidConfig: !0
-}), { autoUpdater: i } = H, E = h(import.meta.dirname, "../dev-app-update.yml"), ce = ["checking", "available", "downloading", "downloaded", "not-available", "error"];
-class de {
+};
+const store = new Store({
+  schema,
+  clearInvalidConfig: true
+});
+const { autoUpdater } = electronUpdater;
+const DEV_UPDATE_CONFIG = join(import.meta.dirname, "../dev-app-update.yml");
+const TIMESTAMP_STATUSES = ["checking", "available", "downloading", "downloaded", "not-available", "error"];
+class AppUpdater {
   state = { status: "idle" };
-  updateDownloaded = !1;
+  updateDownloaded = false;
   checkingPromise = null;
   devConfigEnabled;
   listeners = /* @__PURE__ */ new Set();
   constructor() {
-    this.devConfigEnabled = !n.isPackaged && z(E), this.devConfigEnabled && (i.forceDevUpdateConfig = !0, i.updateConfigPath = E), i.autoDownload = !0, i.autoInstallOnAppQuit = !1, i.fullChangelog = !0, i.logger = console, i.on("checking-for-update", () => {
+    this.devConfigEnabled = !app.isPackaged && existsSync(DEV_UPDATE_CONFIG);
+    if (this.devConfigEnabled) {
+      autoUpdater.forceDevUpdateConfig = true;
+      autoUpdater.updateConfigPath = DEV_UPDATE_CONFIG;
+    }
+    autoUpdater.autoDownload = true;
+    autoUpdater.autoInstallOnAppQuit = false;
+    autoUpdater.fullChangelog = true;
+    autoUpdater.logger = console;
+    autoUpdater.on("checking-for-update", () => {
       this.setState({ status: "checking", error: void 0 });
-    }), i.on("update-available", (t) => {
-      this.updateDownloaded = !1, this.setState({ status: "available", info: t, progress: void 0 });
-    }), i.on("update-not-available", (t) => {
-      this.updateDownloaded = !1, this.setState({ status: "not-available", info: t, progress: void 0 });
-    }), i.on("error", (t) => {
-      const o = t instanceof Error ? t.message : String(t);
-      this.updateDownloaded = !1, this.setState({ status: "error", error: o, progress: void 0 });
-    }), i.on("download-progress", (t) => {
-      this.setState({ status: "downloading", progress: t });
-    }), i.on("update-downloaded", (t) => {
-      this.updateDownloaded = !0, this.setState({ status: "downloaded", info: t, progress: void 0 });
+    });
+    autoUpdater.on("update-available", (info) => {
+      this.updateDownloaded = false;
+      this.setState({ status: "available", info, progress: void 0 });
+    });
+    autoUpdater.on("update-not-available", (info) => {
+      this.updateDownloaded = false;
+      this.setState({ status: "not-available", info, progress: void 0 });
+    });
+    autoUpdater.on("error", (error) => {
+      const message = error instanceof Error ? error.message : String(error);
+      this.updateDownloaded = false;
+      this.setState({ status: "error", error: message, progress: void 0 });
+    });
+    autoUpdater.on("download-progress", (progress) => {
+      this.setState({ status: "downloading", progress });
+    });
+    autoUpdater.on("update-downloaded", (info) => {
+      this.updateDownloaded = true;
+      this.setState({ status: "downloaded", info, progress: void 0 });
     });
   }
   /** Manually trigger an update check */
   async checkForUpdates() {
-    return this.canCheckUpdates() ? this.checkingPromise ? this.checkingPromise : (this.checkingPromise = i.checkForUpdates().then((t) => (t?.updateInfo && this.isNewerVersion(t.updateInfo.version) ? this.setState({ status: "available", info: t.updateInfo }) : this.setState({ status: "not-available", info: t?.updateInfo, progress: void 0 }), this.state)).catch((t) => {
-      const o = t instanceof Error ? t.message : String(t);
-      return this.setState({ status: "error", error: o, progress: void 0 }), this.state;
+    if (!this.canCheckUpdates()) {
+      this.setState({ status: "error", error: "No update feed configured for the current runtime", progress: void 0 });
+      return this.state;
+    }
+    if (this.checkingPromise) {
+      return this.checkingPromise;
+    }
+    this.checkingPromise = autoUpdater.checkForUpdates().then((result) => {
+      if (result?.updateInfo && this.isNewerVersion(result.updateInfo.version)) {
+        this.setState({ status: "available", info: result.updateInfo });
+      } else {
+        this.setState({ status: "not-available", info: result?.updateInfo, progress: void 0 });
+      }
+      return this.state;
+    }).catch((error) => {
+      const message = error instanceof Error ? error.message : String(error);
+      this.setState({ status: "error", error: message, progress: void 0 });
+      return this.state;
     }).finally(() => {
       this.checkingPromise = null;
-    }), this.checkingPromise) : (this.setState({ status: "error", error: "No update feed configured for the current runtime", progress: void 0 }), this.state);
+    });
+    return this.checkingPromise;
   }
   /** Get the latest known update state */
   getState() {
     return this.state;
   }
   /** Subscribe to updater state changes */
-  onStateChange(t) {
-    return this.listeners.add(t), () => {
-      this.listeners.delete(t);
+  onStateChange(listener) {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
     };
   }
   /** Whether there is a downloadable update */
   hasUpdate() {
-    return this.updateDownloaded ? !0 : this.state.info !== void 0 && this.isNewerVersion(this.state.info.version) && (this.state.status === "available" || this.state.status === "downloading");
+    if (this.updateDownloaded) {
+      return true;
+    }
+    return this.state.info !== void 0 && this.isNewerVersion(this.state.info.version) && (this.state.status === "available" || this.state.status === "downloading");
   }
   /** Download (if necessary) and restart to install */
   async upgradeNow() {
-    if (!this.hasUpdate())
+    if (!this.hasUpdate()) {
       throw new Error("No update is currently available");
-    this.updateDownloaded || await i.downloadUpdate(), i.quitAndInstall(!1, !0);
+    }
+    if (!this.updateDownloaded) {
+      await autoUpdater.downloadUpdate();
+    }
+    autoUpdater.quitAndInstall(false, true);
   }
   canCheckUpdates() {
-    return n.isPackaged || this.devConfigEnabled;
+    return app.isPackaged || this.devConfigEnabled;
   }
-  isNewerVersion(t) {
+  isNewerVersion(targetVersion) {
     try {
-      const o = n.getVersion();
-      return this.normalizeVersion(t) > this.normalizeVersion(o);
+      const current = app.getVersion();
+      return this.normalizeVersion(targetVersion) > this.normalizeVersion(current);
     } catch {
-      return t !== n.getVersion();
+      return targetVersion !== app.getVersion();
     }
   }
-  normalizeVersion(t) {
-    return Number(t.split(".").map((o) => o.padStart(2, "0")).join(""));
+  normalizeVersion(version) {
+    return Number(version.split(".").map((part) => part.padStart(2, "0")).join(""));
   }
-  setState(t) {
-    const o = t.status && ce.includes(t.status);
+  setState(partial) {
+    const shouldStamp = partial.status && TIMESTAMP_STATUSES.includes(partial.status);
     this.state = {
       ...this.state,
-      ...t,
-      checkedAt: o ? Date.now() : this.state.checkedAt
-    }, this.emitState();
+      ...partial,
+      checkedAt: shouldStamp ? Date.now() : this.state.checkedAt
+    };
+    this.emitState();
   }
   emitState() {
-    for (const t of this.listeners)
-      t(this.state);
+    for (const listener of this.listeners) {
+      listener(this.state);
+    }
   }
 }
-const w = new de();
-class pe {
+const appUpdater = new AppUpdater();
+class WebUpdater {
   state = { status: "idle" };
   async checkForUpdates() {
-    return this.state = {
+    this.state = {
       status: "not-available",
       checkedAt: Date.now()
-    }, this.state;
+    };
+    return this.state;
   }
   hasUpdate() {
-    return !1;
+    return false;
   }
   async upgradeNow() {
   }
 }
-const x = new pe();
-function ue(e) {
-  const t = w.onStateChange((o) => {
-    e.send("app:updateState", o);
+const webUpdater = new WebUpdater();
+function setupAppIpc(ipcMain2) {
+  const offUpdaterListener = appUpdater.onStateChange((state) => {
+    void ipcMain2.send("app:updateState", state);
   });
-  n.once("before-quit", () => {
-    t();
-  }), e.on("app:getAppVersion", (o) => n.getVersion()), e.on("app:setSystemTheme", (o, r) => {
-    O.themeSource = r;
-  }), e.on("app:saveSoftConfig", (o, r) => {
-    Object.assign(T.store, r);
-  }), e.on("app:getSoftConfig", (o) => ({ ...T })), e.on("app:checkForUpdates", (o) => w.checkForUpdates()), e.on("app:getUpdateState", () => w.getState()), e.on("app:checkWebForUpdates", (o) => x.checkForUpdates()), e.on("app:hasUpdate", (o) => w.hasUpdate()), e.on("app:quitAndInstall", async (o, r) => {
-    r.type === "app" ? w.upgradeNow() : r.type === "web" && await x.upgradeNow();
-  }), e.on("app:showLogDir", (o) => {
-    $.openPath(m.logsDir);
-  }), e.on("app:showHideTrafficLight", (o, r) => {
-    f()?.setWindowButtonVisibility?.(r);
-  }), e.on("app:isMainWindow", (o) => f()?.id === b.fromWebContents(o.sender)?.id), e.on("app:showCurrentWebviewWindow", (o) => {
-    b.fromWebContents(o.sender)?.show();
-  }), e.on("app:getGPUFeatureStatus", (o) => n.getGPUFeatureStatus());
+  app.once("before-quit", () => {
+    offUpdaterListener();
+  });
+  ipcMain2.on("app:getAppVersion", (event) => {
+    return app.getVersion();
+  });
+  ipcMain2.on("app:setSystemTheme", (event, theme) => {
+    nativeTheme.themeSource = theme;
+  });
+  ipcMain2.on("app:saveSoftConfig", (event, config) => {
+    Object.assign(store.store, config);
+  });
+  ipcMain2.on("app:getSoftConfig", (event) => {
+    return { ...store };
+  });
+  ipcMain2.on("app:checkForUpdates", (event) => {
+    return appUpdater.checkForUpdates();
+  });
+  ipcMain2.on("app:getUpdateState", () => {
+    return appUpdater.getState();
+  });
+  ipcMain2.on("app:checkWebForUpdates", (event) => {
+    return webUpdater.checkForUpdates();
+  });
+  ipcMain2.on("app:hasUpdate", (event) => {
+    return appUpdater.hasUpdate();
+  });
+  ipcMain2.on("app:quitAndInstall", async (event, info) => {
+    if (info.type === "app") {
+      appUpdater.upgradeNow();
+    } else if (info.type === "web") {
+      await webUpdater.upgradeNow();
+    }
+  });
+  ipcMain2.on("app:showLogDir", (event) => {
+    shell.openPath(appConfig.logsDir);
+  });
+  ipcMain2.on("app:showHideTrafficLight", (event, show) => {
+    getMainWindow()?.setWindowButtonVisibility?.(show);
+  });
+  ipcMain2.on("app:isMainWindow", (event) => {
+    return getMainWindow()?.id === BrowserWindow.fromWebContents(event.sender)?.id;
+  });
+  ipcMain2.on("app:showCurrentWebviewWindow", (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    win?.show();
+  });
+  ipcMain2.on("app:getGPUFeatureStatus", (event) => {
+    return app.getGPUFeatureStatus();
+  });
 }
-function he(e) {
-  ue(e);
+function setupIpcModules(ipcMain2) {
+  setupAppIpc(ipcMain2);
 }
-const y = new ie.IPCMain();
-function fe() {
-  he(y);
+const ipcMain = new ipcMainExports.IPCMain();
+function setupIpc() {
+  setupIpcModules(ipcMain);
 }
-n.commandLine.appendSwitch("experimental-network-inspection");
-!S && n.commandLine.appendSwitch("ignore-connections-limit", "localhost");
-n.on("open-url", async (e, t) => {
-  e.preventDefault(), await A(t, "open-url");
+app.commandLine.appendSwitch("experimental-network-inspection");
+!isPackaged && app.commandLine.appendSwitch("ignore-connections-limit", "localhost");
+app.on("open-url", async (event, url) => {
+  event.preventDefault();
+  await dispatchDeepLink(url, "open-url");
 });
-async function ge() {
-  n.removeAsDefaultProtocolClient(u), process.defaultApp ? process.argv.length >= 2 && n.setAsDefaultProtocolClient(u, process.execPath, [
-    U.resolve(process.argv[1])
-  ]) : n.setAsDefaultProtocolClient(u), n.on("second-instance", async (e, t) => {
-    console.log("commandLine", t), await D(), await A(t.at(-1) || "", "second-instance");
-  }), n.on("web-contents-created", (e, t) => {
-    t.setWindowOpenHandler(({ url: o }) => ($.openExternal(o), { action: "deny" }));
-  }), n.on("window-all-closed", () => {
-    process.platform !== "darwin" && (console.log("All windows was closed. Quit app."), n.quit());
-  }), n.on("activate", () => D());
+async function setupApp() {
+  app.removeAsDefaultProtocolClient(appProtocolName);
+  if (process.defaultApp) {
+    if (process.argv.length >= 2) {
+      app.setAsDefaultProtocolClient(appProtocolName, process.execPath, [
+        path.resolve(process.argv[1])
+      ]);
+    }
+  } else {
+    app.setAsDefaultProtocolClient(appProtocolName);
+  }
+  app.on("second-instance", async (event, commandLine) => {
+    console.log("commandLine", commandLine);
+    await restoreOrCreateWindow();
+    await dispatchDeepLink(commandLine.at(-1) || "", "second-instance");
+  });
+  app.on("web-contents-created", (e, webContents) => {
+    webContents.setWindowOpenHandler(({ url }) => {
+      shell.openExternal(url);
+      return { action: "deny" };
+    });
+  });
+  app.on("window-all-closed", () => {
+    if (process.platform !== "darwin") {
+      console.log("All windows was closed. Quit app.");
+      app.quit();
+    }
+  });
+  app.on("activate", () => restoreOrCreateWindow());
   try {
-    await n.whenReady(), we(), await D(), ae(), await me(), console.log("setupApp done");
-  } catch (e) {
-    console.error("Failed create window:", e);
+    await app.whenReady();
+    handleCustomProtocol();
+    await restoreOrCreateWindow();
+    createTray();
+    await handleColdStart();
+    console.log("setupApp done");
+  } catch (error) {
+    console.error("Failed create window:", error);
   }
 }
-function we(e = V.defaultSession.protocol) {
-  e.isProtocolHandled(P) || e.handle(P, (t) => {
-    const o = t.url.slice(`${P}:`.length);
-    return console.debug("protocol handle", o), q.fetch(o);
+function handleCustomProtocol(protocol = session.defaultSession.protocol) {
+  if (protocol.isProtocolHandled(mediaProtocolName)) {
+    return;
+  }
+  protocol.handle(mediaProtocolName, (request) => {
+    const filePath = request.url.slice(`${mediaProtocolName}:`.length);
+    console.debug("protocol handle", filePath);
+    return net.fetch(filePath);
   });
 }
-async function me() {
+async function handleColdStart() {
   try {
-    const e = process.argv.find(
-      (t) => t.startsWith(`${u}://`)
+    const startupUrl = process.argv.find(
+      (arg) => arg.startsWith(`${appProtocolName}://`)
     );
-    e && await A(e, "cold-start");
-  } catch (e) {
-    console.error("Failed to handle protocol on cold start:", e);
+    if (startupUrl) {
+      await dispatchDeepLink(startupUrl, "cold-start");
+    }
+  } catch (error) {
+    console.error("Failed to handle protocol on cold start:", error);
   }
 }
-async function A(e, t) {
+async function dispatchDeepLink(url, source) {
   try {
-    if (!e || !e.startsWith(`${u}://`)) return;
-    console.log(`deep-link [${t}]:`, e);
-    const o = e.split("?")[1];
-    e.includes(`${u}://oauth2callback`) && (y.send("oauth2:google-callback", `?${o}`), console.log("oauth2callback:", t, e)), e.includes(`${u}://inviteUser2project`) && (y.send("invite:to-project", `?${o}`), console.log("inviteUser2project:", t, e)), e.includes(`${u}://open-page`) && (y.send("open:page", `?${o}`), console.log("open-page:", t, e)), f()?.show?.();
-  } catch (o) {
-    console.error("Failed to dispatch deep link:", t, o);
+    if (!url || !url.startsWith(`${appProtocolName}://`)) return;
+    console.log(`deep-link [${source}]:`, url);
+    const searchParams = url.split("?")[1];
+    if (url.includes(`${appProtocolName}://oauth2callback`)) {
+      ipcMain.send("oauth2:google-callback", `?${searchParams}`);
+      console.log("oauth2callback:", source, url);
+    }
+    if (url.includes(`${appProtocolName}://inviteUser2project`)) {
+      ipcMain.send("invite:to-project", `?${searchParams}`);
+      console.log("inviteUser2project:", source, url);
+    }
+    if (url.includes(`${appProtocolName}://open-page`)) {
+      ipcMain.send("open:page", `?${searchParams}`);
+      console.log("open-page:", source, url);
+    }
+    getMainWindow()?.show?.();
+  } catch (error) {
+    console.error("Failed to dispatch deep link:", source, error);
   }
 }
-function ve() {
-  d.transports.console.format = "[{y}-{m}-{d} {h}:{i}:{s}] [{level}] {text}", d.transports.file.format = `[{y}-{m}-{d} {h}:{i}:{s}] [{level}][${n.getVersion()}] {text}`, d.transports.console.useStyles = !0, d.transports.file.level = g["app-log-level"], d.transports.file.sync = !1, d.transports.file.resolvePathFn = () => {
-    const e = K(Date.now(), "yyyy-MM-dd");
-    return h(m.logsDir, `${e}.log`);
-  }, Object.assign(console, d.functions), d.errorHandler.startCatching(), ye();
+function setupLog() {
+  log.transports.console.format = `[{y}-{m}-{d} {h}:{i}:{s}] [{level}] {text}`;
+  log.transports.file.format = `[{y}-{m}-{d} {h}:{i}:{s}] [{level}][${app.getVersion()}] {text}`;
+  log.transports.console.useStyles = true;
+  log.transports.file.level = appCliStartArgs["app-log-level"];
+  log.transports.file.sync = false;
+  log.transports.file.resolvePathFn = () => {
+    const formattedDate = format(Date.now(), "yyyy-MM-dd");
+    return join(appConfig.logsDir, `${formattedDate}.log`);
+  };
+  Object.assign(console, log.functions);
+  log.errorHandler.startCatching();
+  cleanupOldLogs();
 }
-async function ye() {
-  const e = m.logsDir;
+async function cleanupOldLogs() {
+  const logDir = appConfig.logsDir;
   try {
-    const t = await G(e), o = Date.now();
-    t.forEach(async (r) => {
-      const a = h(e, r), c = await Q(a);
-      o - c.mtimeMs > 10080 * 60 * 1e3 && J(a, { recursive: !0, force: !0 }).then(() => {
-        d.info(`Deleted expired log file: ${r}`);
-      }).catch((W) => {
-        d.error(`Failed to delete file: ${r}`, W);
-      });
+    const files = await readdir(logDir);
+    const now = Date.now();
+    files.forEach(async (file) => {
+      const filePath = join(logDir, file);
+      const stats = await stat(filePath);
+      const fileAge = now - stats.mtimeMs;
+      if (fileAge > 7 * 24 * 60 * 60 * 1e3) {
+        rm(filePath, { recursive: true, force: true }).then(() => {
+          log.info(`Deleted expired log file: ${file}`);
+        }).catch((err) => {
+          log.error(`Failed to delete file: ${file}`, err);
+        });
+      }
     });
-  } catch (t) {
-    d.error("Failed to read log directory:", t);
+  } catch (error) {
+    log.error("Failed to read log directory:", error);
   }
 }
-async function be() {
-  ve(), fe(), await ge();
+async function setupModules() {
+  setupLog();
+  setupIpc();
+  await setupApp();
 }
-const Se = n.requestSingleInstanceLock();
-Se || (n.quit(), process.exit(0));
-be();
+const isSingleInstance = app.requestSingleInstanceLock();
+if (!isSingleInstance) {
+  app.quit();
+  process.exit(0);
+}
+setupModules();

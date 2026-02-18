@@ -1,8 +1,12 @@
 "use client";
 
 import { Bell, Database, Key, Settings, Shield } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import type { Passkey } from "@/lib/auth/auth-client";
+
+import { getCachedUserPasskeys } from "@/utils/get-cached-user-passkeys";
 import { Button } from "@workspace/ui/components/button";
 import {
   Card,
@@ -17,11 +21,21 @@ import { Separator } from "@workspace/ui/components/separator";
 import { Switch } from "@workspace/ui/components/switch";
 
 export function SettingsTab() {
+  const [passkeys, setPasskeys] = useState<Passkey[] | null>(null);
   const handleSave = () => {
     toast("Settings Saved", {
       description: "Your configuration has been updated successfully.",
     });
   };
+
+  useEffect(() => {
+    const fetchKeys = async () => {
+      const { data: keys } = await getCachedUserPasskeys();
+      setPasskeys(keys);
+    };
+
+    fetchKeys();
+  }, []);
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
@@ -212,6 +226,22 @@ export function SettingsTab() {
         </CardContent>
       </Card>
 
+      <div className="lg:col-span-2">
+        <Card>
+          <CardContent className="flex items-center justify-between p-6">
+            <div>
+              <p className="font-medium text-foreground">Add passkeys</p>
+              <p className="text-sm text-muted-foreground">
+                Add passkeys for secure, password less authentication.
+              </p>
+            </div>
+            <Button onClick={handleSave} size="lg">
+              <Settings className="mr-2 h-4 w-4" />
+              Save Settings
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
       <div className="lg:col-span-2">
         <Card>
           <CardContent className="flex items-center justify-between p-6">

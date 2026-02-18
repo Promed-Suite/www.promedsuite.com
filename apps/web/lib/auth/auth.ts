@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 
 import { env } from "@/env";
 
-import type { Department, Session } from "./auth-client";
+import type { Department, Passkey, Session } from "./auth-client";
 
 const baseURL = env.NEXT_PUBLIC_URL || "http://localhost:3000";
 
@@ -98,4 +98,25 @@ export async function setActiveOrganization(
   );
 
   return activeOrganization;
+}
+
+export async function listPasskeys() {
+  const cookieStore = await cookies();
+
+  const passkeys = await betterFetch<Passkey[]>(
+    "/api/auth/passkey/list-user-passkeys",
+    {
+      baseURL,
+      headers: {
+        "Content-Type": "application/json",
+        "Origin": env.NEXT_PUBLIC_URL,
+        "cookie": `${cookieStore.get("better-auth.session_token")?.name}=${
+          cookieStore.get("better-auth.session_token")?.value
+        }`,
+      },
+      method: "GET",
+    },
+  );
+
+  return passkeys;
 }

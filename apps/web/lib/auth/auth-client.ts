@@ -1,5 +1,6 @@
 import type { auth } from "apis/auth";
 
+import { passkeyClient } from "@better-auth/passkey/client";
 import {
   adminClient,
   inferOrgAdditionalFields,
@@ -18,6 +19,7 @@ export const authClient = createAuthClient({
     organizationClient({
       schema: inferOrgAdditionalFields<typeof auth>(),
     }),
+    passkeyClient(),
   ],
 });
 
@@ -28,3 +30,5 @@ export type User = typeof authClient.$Infer.Session.user;
 export type Department = typeof authClient.$Infer.Organization;
 
 export type TeamMember = typeof authClient.$Infer.Member;
+
+export type Passkey = typeof authClient.$Infer.Passkey;

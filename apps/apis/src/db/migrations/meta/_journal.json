@@ -50,6 +50,13 @@
       "when": 1766403652429,
       "tag": "0006_loud_omega_sentinel",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1771247361736,
+      "tag": "0007_aspiring_lorna_dane",
+      "breakpoints": true
     }
   ]
 }

@@ -1,3 +1,4 @@
+import { passkey } from "@better-auth/passkey";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { createAuthMiddleware } from "better-auth/api";
@@ -10,7 +11,7 @@ import { sendEmailVerificationEmail } from "@/utils/email-verification";
 import { sendPasswordResetEmail } from "@/utils/password-reset-email";
 import { sendWelcomeEmail } from "@/utils/welcome-email";
 
-export const auth = betterAuth({
+export const auth: ReturnType <typeof betterAuth> = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
   }),
@@ -51,9 +52,10 @@ export const auth = betterAuth({
   },
   trustedOrigins: ["http://localhost:3000", env.FRONTEND_URL],
   plugins: [
-    openAPI(),
-    nextCookies(),
+    passkey(),
     admin({ defaultRole: "user" }),
+    nextCookies(),
+    openAPI(),
     organization({
       schema: {
         organization: {
