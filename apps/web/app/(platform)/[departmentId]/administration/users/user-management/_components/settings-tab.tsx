@@ -21,6 +21,7 @@ import { Separator } from "@workspace/ui/components/separator";
 import { Switch } from "@workspace/ui/components/switch";
 
 export function SettingsTab() {
+  // eslint-disable-next-line unused-imports/no-unused-vars
   const [passkeys, setPasskeys] = useState<Passkey[] | null>(null);
   const handleSave = () => {
     toast("Settings Saved", {
