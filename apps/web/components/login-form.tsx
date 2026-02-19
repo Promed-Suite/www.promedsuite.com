@@ -1045,7 +1045,14 @@ export function LoginForm({
         </p> */}
       </div>
       <div className="grid gap-6">
-        <Button variant="outline" className="w-full rounded-3xl cursor-pointer" size="lg">
+        <Button
+          variant="outline"
+          className="w-full rounded-3xl cursor-pointer"
+          size="lg"
+          onClick={() => toast.info("No passkeys found.", {
+            description: "Set up your first passkey for faster, more secure sign-in.",
+          })}
+        >
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-user-round-key-icon lucide-user-round-key">
             <path d="M19 11v6" />
             <path d="M19 13h2" />
